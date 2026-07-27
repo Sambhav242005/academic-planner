@@ -1,0 +1,208 @@
+import { NextRequest } from 'next/server'
+import { createHash } from 'crypto'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
+import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
+import { auth } from '@/lib/auth/auth'
+import { validateApiKey } from '@/lib/mcp/auth'
+import * as tools from '@/lib/mcp/tools'
+import { z } from 'zod'
+
+type RateLimitEntry = { count: number; resetAt: number }
+const MCP_RATE_LIMIT = 60
+const MCP_RATE_WINDOW_MS = 60_000
+const mcpRateLimits = new Map<string, RateLimitEntry>()
+function isMcpRateLimited(request: NextRequest): boolean {
+  const identifier = request.headers.get('x-api-key') ?? request.headers.get('x-forwarded-for') ?? 'anonymous'
+  const key = createHash('sha256').update(identifier).digest('hex')
+  const now = Date.now()
+  const current = mcpRateLimits.get(key)
+  if (current && current.resetAt > now) {
+    if (current.count >= MCP_RATE_LIMIT) return true
+    current.count += 1
+    return false
+  }
+  mcpRateLimits.set(key, { count: 1, resetAt: now + MCP_RATE_WINDOW_MS })
+  return false
+}
+function createServer() {
+  const server = new McpServer({
+    name: 'academic-planner-mcp',
+    version: '1.0.0',
+  })
+
+  function userId(extra: RequestHandlerExtra<any, any>): string {
+    return extra.authInfo?.extra?.userId as string
+  }
+
+  server.registerTool('list_subjects', {
+    title: 'List Subjects',
+    description: 'Returns all academic subjects for the authenticated user. Each subject includes an id, name, and color code. Use this to discover available subjects before creating tasks or checking attendance.',
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (_args, extra) => {
+    const result = await tools.listSubjects({ userId: userId(extra) })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.subjects) }] }
+  })
+
+  server.registerTool('list_subjects_with_attendance', {
+    title: 'List Subjects with Attendance',
+    description: 'Returns all subjects with per-subject attendance statistics: total classes, present count, and attendance percentage. Use this to see which subjects need attention.',
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (_args, extra) => {
+    const result = await tools.listSubjectsWithAttendance({ userId: userId(extra) })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.subjects) }] }
+  })
+
+  server.registerTool('create_task', {
+    title: 'Create Task',
+    description: 'Creates a new task for the authenticated user. Tasks can be linked to a subject, have a due date, priority level (low/medium/high), and a note. Tasks created by AI are marked with source "ai".',
+    inputSchema: z.object({
+      title: z.string().min(1).max(200).describe('Task title'),
+      subject_id: z.string().optional().describe('Subject ID to link the task to (optional)'),
+      due_date: z.string().max(10).optional().describe('Due date in YYYY-MM-DD format (optional)'),
+      priority: z.enum(['low', 'medium', 'high']).optional().describe('Priority level (default: medium)'),
+      note: z.string().max(2000).optional().describe('Additional note for the task'),
+    }),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.createTask({ userId: userId(extra) }, {
+      title: args.title,
+      subject_id: args.subject_id,
+      due_date: args.due_date,
+      priority: args.priority ?? 'medium',
+      note: args.note,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.task) }] }
+  })
+
+  server.registerTool('list_tasks', {
+    title: 'List Tasks',
+    description: 'Returns all tasks for the authenticated user with optional filters. Filter by completion status or priority. Each task includes title, subject, due date, priority, and source.',
+    inputSchema: z.object({
+      completed: z.boolean().optional().describe('Filter by completion status (true=completed, false=active)'),
+      priority: z.enum(['low', 'medium', 'high']).optional().describe('Filter by priority level'),
+    }),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.listTasks({ userId: userId(extra) }, {
+      completed: args.completed,
+      priority: args.priority,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.tasks) }] }
+  })
+
+  server.registerTool('update_task', {
+    title: 'Update Task',
+    description: 'Updates an existing task. Only provided fields are changed. Pass null for due_date to clear it. Returns the updated task.',
+    inputSchema: z.object({
+      task_id: z.string().describe('Task ID to update'),
+      title: z.string().min(1).max(200).optional().describe('New title'),
+      completed: z.boolean().optional().describe('Set completion status'),
+      priority: z.enum(['low', 'medium', 'high']).optional().describe('New priority level'),
+      due_date: z.string().max(10).nullable().optional().describe('New due date (YYYY-MM-DD) or null to clear'),
+      note: z.string().max(2000).optional().describe('New note'),
+    }),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.updateTask({ userId: userId(extra) }, {
+      task_id: args.task_id,
+      title: args.title,
+      completed: args.completed,
+      priority: args.priority,
+      due_date: args.due_date,
+      note: args.note,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.task) }] }
+  })
+
+  server.registerTool('delete_task', {
+    title: 'Delete Task',
+    description: 'Permanently deletes a task. This action cannot be undone.',
+    inputSchema: z.object({
+      task_id: z.string().describe('Task ID to delete'),
+    }),
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async (args, extra) => {
+    const result = await tools.deleteTask({ userId: userId(extra) }, { task_id: args.task_id })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] }
+  })
+
+  server.registerTool('get_today_classes', {
+    title: "Today's Classes",
+    description: "Returns today's class schedule for the authenticated user, including subject name, time, class type, and attendance status (present/absent/cancelled/holiday). Use this to understand what classes the user has today.",
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (_args, extra) => {
+    const result = await tools.getTodayClasses({ userId: userId(extra) })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.classes) }] }
+  })
+
+  server.registerTool('get_attendance_stats', {
+    title: 'Attendance Statistics',
+    description: 'Returns attendance statistics: total classes, present/absent/cancelled/holiday counts, and overall percentage. Optionally filter by a specific subject using its ID.',
+    inputSchema: z.object({
+      subject_id: z.string().optional().describe('Subject ID to filter by (omit for overall stats)'),
+    }),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.getAttendanceStats({ userId: userId(extra) }, { subject_id: args.subject_id })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] }
+  })
+
+  return server
+}
+
+export async function POST(request: NextRequest) {
+  if (isMcpRateLimited(request)) {
+    return Response.json({ error: 'Too many requests. Try again shortly.' }, { status: 429 })
+  }
+
+  let userId: string | null = null
+
+  const apiKey = request.headers.get('x-api-key')
+  if (apiKey) {
+    userId = await validateApiKey(apiKey)
+  }
+
+  if (!userId) {
+    const session = await auth()
+    userId = session?.user?.id ?? null
+  }
+
+  if (!userId) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized. Provide an x-api-key header or sign in via the app.' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  })
+
+  const server = createServer()
+  await server.connect(transport)
+
+  const enhancedRequest = new Request(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    duplex: 'half',
+  } as RequestInit & { duplex: string })
+
+  return transport.handleRequest(enhancedRequest, {
+    authInfo: {
+      token: '',
+      clientId: userId,
+      scopes: [],
+      extra: { userId },
+    },
+  })
+}
+
+export async function GET() {
+  return new Response(JSON.stringify({ error: 'Use POST for MCP' }), { status: 405 })
+}
