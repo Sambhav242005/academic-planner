@@ -21,6 +21,8 @@ services:
         SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY}
         AUTH_SECRET: ${AUTH_SECRET}
         AUTH_RESEND_KEY: ${AUTH_RESEND_KEY}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY}
     container_name: academic-planner
     expose:
       - "3000"
