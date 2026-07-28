@@ -25,7 +25,7 @@ services:
     expose:
       - "3000"
     env_file:
-      - .env.local
+      - .env
     environment:
       - NODE_ENV=production
       - AUTH_TRUST_HOST=true
