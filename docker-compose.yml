@@ -17,4 +17,5 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+      - AUTH_TRUST_HOST=true
     restart: unless-stopped
