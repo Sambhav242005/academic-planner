@@ -105,7 +105,7 @@ function LoginForm() {
     setError('')
 
     try {
-      const res = await fetch('/api/oauth/login', {
+      const res = await fetch('/api/oauth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

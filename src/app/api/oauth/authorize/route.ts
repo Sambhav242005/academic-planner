@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     scope,
   }
 
-  const loginUrl = new URL(`${baseUrl}/api/oauth/login`)
+  const loginUrl = new URL(`${baseUrl}/oauth/login`)
   loginUrl.searchParams.set('oauth', Buffer.from(JSON.stringify(oauthParams)).toString('base64url'))
 
   return NextResponse.redirect(loginUrl)
