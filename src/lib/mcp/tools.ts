@@ -13,6 +13,207 @@ export async function listSubjects(ctx: McpContext) {
   return { subjects: data ?? [] }
 }
 
+export async function createSubject(
+  ctx: McpContext,
+  params: { name: string; color: string; semester_id: string }
+) {
+  const name = params.name.trim()
+  if (!name) throw new Error('Subject name is required')
+  const color = params.color.trim()
+  if (!color) throw new Error('Color is required')
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(color)) throw new Error('Color must be a valid hex code like "#3b82f6"')
+  if (!params.semester_id) throw new Error('semester_id is required')
+
+  const supabase = createAdminClient()
+
+  // Validate semester exists and belongs to user
+  const { data: semester, error: semError } = await supabase
+    .from('semesters')
+    .select('id, label')
+    .eq('id', params.semester_id)
+    .eq('user_id', ctx.userId)
+    .maybeSingle()
+  if (semError || !semester) {
+    const { data: available } = await supabase
+      .from('semesters')
+      .select('id, label, is_active')
+      .eq('user_id', ctx.userId)
+    const list = (available ?? []).map(s => `${s.label} (${s.id})${s.is_active ? ' [active]' : ''}`).join(', ')
+    throw new Error(
+      `Semester not found with id "${params.semester_id}". ` +
+      `Available semesters: ${list || '(none - create a semester first)'}`
+    )
+  }
+
+  // Check for duplicate name within same semester
+  const { data: existing } = await supabase
+    .from('subjects')
+    .select('id, name')
+    .eq('user_id', ctx.userId)
+    .eq('semester_id', params.semester_id)
+    .ilike('name', name)
+    .maybeSingle()
+  if (existing) throw new Error(`Subject "${existing.name}" already exists in semester "${semester.label}" (id: ${existing.id}). Use update instead.`)
+
+  const { data, error } = await supabase
+    .from('subjects')
+    .insert({
+      user_id: ctx.userId,
+      name,
+      color,
+      semester_id: params.semester_id,
+    })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return { subject: data }
+}
+
+export async function listSemesters(ctx: McpContext) {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('semesters')
+    .select('*')
+    .eq('user_id', ctx.userId)
+    .order('created_at', { ascending: false })
+  return { semesters: data ?? [] }
+}
+
+export async function createSemester(
+  ctx: McpContext,
+  params: { label: string; is_active?: boolean }
+) {
+  const label = params.label.trim()
+  if (!label) throw new Error('Semester label is required')
+
+  const supabase = createAdminClient()
+
+  // Check for duplicate label
+  const { data: existing } = await supabase
+    .from('semesters')
+    .select('id, label')
+    .eq('user_id', ctx.userId)
+    .ilike('label', label)
+    .maybeSingle()
+  if (existing) throw new Error(`Semester "${existing.label}" already exists (id: ${existing.id})`)
+
+  // If marking as active, deactivate all others first
+  if (params.is_active) {
+    await supabase
+      .from('semesters')
+      .update({ is_active: false })
+      .eq('user_id', ctx.userId)
+      .eq('is_active', true)
+  }
+
+  const { data, error } = await supabase
+    .from('semesters')
+    .insert({
+      user_id: ctx.userId,
+      label,
+      is_active: params.is_active ?? false,
+    })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return { semester: data }
+}
+
+export async function listRecurringClasses(ctx: McpContext) {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('recurring_classes')
+    .select('*, subject:subjects(*)')
+    .eq('user_id', ctx.userId)
+    .order('day_of_week')
+    .order('start_time')
+  return { recurring_classes: data ?? [] }
+}
+
+function isValidTime(time: string): boolean {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(time)
+}
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
+export async function createRecurringClass(
+  ctx: McpContext,
+  params: { subject_id: string; day_of_week: number; start_time: string; end_time?: string; class_type?: string; semester_id?: string }
+) {
+  const validClassTypes = ['theory', 'clinical', 'practical', 'tutorial', 'exam']
+  const classType = validClassTypes.includes(params.class_type ?? '') ? params.class_type! : 'theory'
+  if (params.day_of_week < 0 || params.day_of_week > 6) throw new Error('day_of_week must be 0 (Mon) to 6 (Sun)')
+  if (!isValidTime(params.start_time)) throw new Error('start_time must be HH:MM in 24h format (e.g. "08:15")')
+  if (params.end_time && !isValidTime(params.end_time)) throw new Error('end_time must be HH:MM in 24h format (e.g. "09:15")')
+  if (params.end_time && timeToMinutes(params.end_time) <= timeToMinutes(params.start_time)) {
+    throw new Error('end_time must be after start_time')
+  }
+
+  const supabase = createAdminClient()
+
+  // Verify subject belongs to user
+  const { data: subject, error: subjectError } = await supabase
+    .from('subjects')
+    .select('id, name')
+    .eq('id', params.subject_id)
+    .eq('user_id', ctx.userId)
+    .maybeSingle()
+  if (subjectError || !subject) {
+    // List available subjects so the model knows what's valid
+    const { data: available } = await supabase
+      .from('subjects')
+      .select('id, name')
+      .eq('user_id', ctx.userId)
+    const list = (available ?? []).map(s => `${s.name} (${s.id})`).join(', ')
+    throw new Error(
+      `Subject not found with id "${params.subject_id}". ` +
+      `Available subjects: ${list || '(none)'}`
+    )
+  }
+
+  // Check for scheduling conflict (same day, overlapping time)
+  const { data: existing } = await supabase
+    .from('recurring_classes')
+    .select('id, subject_id, start_time, end_time, subject:subjects(name)')
+    .eq('user_id', ctx.userId)
+    .eq('day_of_week', params.day_of_week)
+
+  const newStart = timeToMinutes(params.start_time)
+  const newEnd = params.end_time ? timeToMinutes(params.end_time) : newStart + 60
+
+  for (const cls of existing ?? []) {
+    const existStart = timeToMinutes(cls.start_time)
+    const existEnd = cls.end_time ? timeToMinutes(cls.end_time) : existStart + 60
+    // Overlap if new starts before existing ends AND new ends after existing starts
+    if (newStart < existEnd && newEnd > existStart) {
+      const clsName = (cls.subject as any)?.name ?? 'Unknown'
+      throw new Error(
+        `Scheduling conflict: ${clsName} is already at ${cls.start_time}-${cls.end_time ?? '?'} on day ${params.day_of_week}. ` +
+        `Cannot add ${subject.name} at ${params.start_time}-${params.end_time ?? '?'}.`
+      )
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('recurring_classes')
+    .insert({
+      user_id: ctx.userId,
+      subject_id: params.subject_id,
+      day_of_week: params.day_of_week,
+      start_time: params.start_time,
+      end_time: params.end_time ?? null,
+      class_type: classType,
+      semester_id: params.semester_id ?? null,
+    })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return { recurring_class: data }
+}
+
 const MAX_TITLE = 200
 const MAX_NOTE = 2000
 

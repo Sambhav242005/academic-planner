@@ -35,6 +35,32 @@ function createServer() {
     return extra.authInfo?.extra?.userId as string
   }
 
+  server.registerTool('list_semesters', {
+    title: 'List Semesters',
+    description: 'Returns all semesters for the authenticated user. Each semester has an id, label, and whether it is active.',
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (_args, extra) => {
+    const result = await tools.listSemesters({ userId: userId(extra) })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.semesters) }] }
+  })
+
+  server.registerTool('create_semester', {
+    title: 'Create Semester',
+    description: 'Creates a new semester. If is_active is true, all other semesters are deactivated.',
+    inputSchema: z.object({
+      label: z.string().min(1).max(50).describe('Semester label (e.g. "Sem VII")'),
+      is_active: z.boolean().optional().describe('Mark as active semester (default: false)'),
+    }),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.createSemester({ userId: userId(extra) }, {
+      label: args.label,
+      is_active: args.is_active,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.semester) }] }
+  })
+
   server.registerTool('list_subjects', {
     title: 'List Subjects',
     description: 'Returns all academic subjects for the authenticated user. Each subject includes an id, name, and color code. Use this to discover available subjects before creating tasks or checking attendance.',
@@ -43,6 +69,58 @@ function createServer() {
   }, async (_args, extra) => {
     const result = await tools.listSubjects({ userId: userId(extra) })
     return { content: [{ type: 'text' as const, text: JSON.stringify(result.subjects) }] }
+  })
+
+  server.registerTool('create_subject', {
+    title: 'Create Subject',
+    description: 'Creates a new academic subject. Each subject has a name, color code (hex like "#3b82f6"), and must belong to an existing semester.',
+    inputSchema: z.object({
+      name: z.string().min(1).max(100).describe('Subject name'),
+      color: z.string().min(1).max(20).describe('Color code (hex like "#3b82f6")'),
+      semester_id: z.string().describe('Semester ID (must be an existing semester)'),
+    }),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.createSubject({ userId: userId(extra) }, {
+      name: args.name,
+      color: args.color,
+      semester_id: args.semester_id,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.subject) }] }
+  })
+
+  server.registerTool('list_recurring_classes', {
+    title: 'List Recurring Classes',
+    description: 'Returns all recurring class entries in the timetable, ordered by day and time. Each entry includes subject name, day of week, time, and class type.',
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async (_args, extra) => {
+    const result = await tools.listRecurringClasses({ userId: userId(extra) })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.recurring_classes) }] }
+  })
+
+  server.registerTool('create_recurring_class', {
+    title: 'Create Recurring Class',
+    description: 'Creates a recurring class slot in the timetable. day_of_week: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday. start_time/end_time in HH:MM format (24h). class_type: theory, clinical, practical, tutorial, or exam.',
+    inputSchema: z.object({
+      subject_id: z.string().describe('Subject ID for this class'),
+      day_of_week: z.number().min(0).max(6).describe('Day of week (0=Mon, 6=Sun)'),
+      start_time: z.string().describe('Start time in HH:MM format (24h)'),
+      end_time: z.string().optional().describe('End time in HH:MM format (24h, optional)'),
+      class_type: z.enum(['theory', 'clinical', 'practical', 'tutorial', 'exam']).optional().describe('Class type (default: theory)'),
+      semester_id: z.string().optional().describe('Semester ID (optional)'),
+    }),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  }, async (args, extra) => {
+    const result = await tools.createRecurringClass({ userId: userId(extra) }, {
+      subject_id: args.subject_id,
+      day_of_week: args.day_of_week,
+      start_time: args.start_time,
+      end_time: args.end_time,
+      class_type: args.class_type,
+      semester_id: args.semester_id,
+    })
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result.recurring_class) }] }
   })
 
   server.registerTool('list_subjects_with_attendance', {
