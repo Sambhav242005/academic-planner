@@ -29,4 +29,5 @@ services:
     environment:
       - NODE_ENV=production
       - AUTH_TRUST_HOST=true
+      - AUTH_URL=https://planner.sambhav-surana.online
     restart: unless-stopped
