@@ -3,8 +3,10 @@ import { createHash } from 'crypto'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
+import { jwtVerify } from 'jose'
 import { auth } from '@/lib/auth/auth'
 import { validateApiKey } from '@/lib/mcp/auth'
+import { getSigningKey } from '@/lib/oauth/keys'
 import * as tools from '@/lib/mcp/tools'
 import { z } from 'zod'
 
@@ -25,6 +27,21 @@ function isMcpRateLimited(request: NextRequest): boolean {
   mcpRateLimits.set(key, { count: 1, resetAt: now + MCP_RATE_WINDOW_MS })
   return false
 }
+
+async function validateOAuthToken(token: string): Promise<string | null> {
+  try {
+    const signingKey = await getSigningKey()
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://planner.sambhav-surana.online'
+    const { payload } = await jwtVerify(token, signingKey, {
+      issuer: baseUrl,
+      audience: `${baseUrl}/api/mcp`,
+    })
+    return (payload.sub as string) ?? null
+  } catch {
+    return null
+  }
+}
+
 function createServer() {
   const server = new McpServer({
     name: 'academic-planner-mcp',
@@ -239,20 +256,38 @@ export async function POST(request: NextRequest) {
 
   let userId: string | null = null
 
-  const apiKey = request.headers.get('x-api-key')
-  if (apiKey) {
-    userId = await validateApiKey(apiKey)
+  // Try OAuth Bearer token first (ChatGPT)
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    userId = await validateOAuthToken(token)
   }
 
+  // Try API key
+  if (!userId) {
+    const apiKey = request.headers.get('x-api-key')
+    if (apiKey) {
+      userId = await validateApiKey(apiKey)
+    }
+  }
+
+  // Try session cookie
   if (!userId) {
     const session = await auth()
     userId = session?.user?.id ?? null
   }
 
   if (!userId) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://planner.sambhav-surana.online'
     return new Response(
-      JSON.stringify({ error: 'Unauthorized. Provide an x-api-key header or sign in via the app.' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Unauthorized. Provide a Bearer token, x-api-key header, or sign in via the app.' }),
+      {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          'WWW-Authenticate': `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource", error="invalid_token", error_description="Authentication required"`,
+        },
+      }
     )
   }
 
