@@ -1,4 +1,15 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: academic-planner-nginx
+    ports:
+      - "32768:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
   app:
     build:
       context: .
@@ -11,10 +22,10 @@ services:
         AUTH_SECRET: ${AUTH_SECRET}
         AUTH_RESEND_KEY: ${AUTH_RESEND_KEY}
     container_name: academic-planner
-    ports:
+    expose:
       - "3000"
     env_file:
-      - .env
+      - .env.local
     environment:
       - NODE_ENV=production
       - AUTH_TRUST_HOST=true
