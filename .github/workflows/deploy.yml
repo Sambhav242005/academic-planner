@@ -1,0 +1,45 @@
+name: Deploy to Pi
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: academic-planner-pi-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - ARM64
+
+    env:
+      DEPLOY_DIR: /home/sambhav/academic-planner
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Sync repo on Pi
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d "$DEPLOY_DIR/.git" ]; then
+            git clone "https://github.com/Sambhav242005/academic-planner.git" "$DEPLOY_DIR"
+          fi
+          git -C "$DEPLOY_DIR" fetch --force origin main
+          git -C "$DEPLOY_DIR" checkout -B main "$GITHUB_SHA"
+          git -C "$DEPLOY_DIR" reset --hard "$GITHUB_SHA"
+          git -C "$DEPLOY_DIR" clean -fdx
+
+      - name: Restart Docker stack
+        shell: bash
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          set -euo pipefail
+          sudo docker compose up -d --build --remove-orphans
