@@ -13,7 +13,7 @@ export async function GET() {
     authorization_endpoint: `${baseUrl}/api/oauth/authorize`,
     token_endpoint: `${baseUrl}/api/oauth/token`,
     registration_endpoint: `${baseUrl}/api/oauth/register`,
-    jwks_uri: `${baseUrl}/.well-known/jwks.json`,
+    jwks_uri: `${baseUrl}/.well-known/jwks`,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code'],
     token_endpoint_auth_methods_supported: ['none'],
