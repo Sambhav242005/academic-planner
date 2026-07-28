@@ -4,7 +4,7 @@
 CREATE TABLE oauth_auth_codes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT UNIQUE NOT NULL,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
   client_id TEXT NOT NULL,
   redirect_uri TEXT NOT NULL,
   code_challenge TEXT NOT NULL,
