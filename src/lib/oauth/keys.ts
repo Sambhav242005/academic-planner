@@ -15,7 +15,8 @@ async function getPrivateKeyPem(): Promise<string> {
       'node -e "require(\'crypto\').generateKeyPair(\'rsa\',{modularLength:2048},(e,k)=>{if(e)throw e;require(\'fs\').writeFileSync(\'private.pem\',k.privateKey.export({type:\'pkcs8\',format:\'pem\'}));console.log(\'Done\')})"'
     )
   }
-  return pem
+  // Handle literal \n from env files (they don't interpret escape sequences)
+  return pem.replace(/\\n/g, '\n')
 }
 
 export async function getSigningKey(): Promise<CryptoKey> {
