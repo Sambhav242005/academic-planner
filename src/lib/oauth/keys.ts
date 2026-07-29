@@ -1,21 +1,18 @@
-import { exportJWK, importPKCS8 } from 'jose'
-import { createHash } from 'crypto'
+import { exportJWK, importPKCS8, importSPKI } from 'jose'
+import { createHash, createPrivateKey, createPublicKey } from 'crypto'
 
 const ALG = 'RS256'
 const KID = 'academic-planner-1'
 
 let cachedPrivateKey: CryptoKey | null = null
+let cachedPublicKey: CryptoKey | null = null
 let cachedJwks: { keys: object[] } | null = null
 
 async function getPrivateKeyPem(): Promise<string> {
   const pem = process.env.OAUTH_PRIVATE_KEY
   if (!pem) {
-    throw new Error(
-      'OAUTH_PRIVATE_KEY not set. Generate one with: ' +
-      'node -e "require(\'crypto\').generateKeyPair(\'rsa\',{modularLength:2048},(e,k)=>{if(e)throw e;require(\'fs\').writeFileSync(\'private.pem\',k.privateKey.export({type:\'pkcs8\',format:\'pem\'}));console.log(\'Done\')})"'
-    )
+    throw new Error('OAUTH_PRIVATE_KEY not set')
   }
-  // Handle literal \n from env files (they don't interpret escape sequences)
   return pem.replace(/\\n/g, '\n')
 }
 
@@ -26,10 +23,19 @@ export async function getSigningKey(): Promise<CryptoKey> {
   return cachedPrivateKey
 }
 
+export async function getVerificationKey(): Promise<CryptoKey> {
+  if (cachedPublicKey) return cachedPublicKey
+  const privatePem = await getPrivateKeyPem()
+  const privateKeyObj = createPrivateKey(privatePem)
+  const publicKeyObj = createPublicKey(privateKeyObj)
+  const publicPem = publicKeyObj.export({ type: 'spki', format: 'pem' }) as string
+  cachedPublicKey = await importSPKI(publicPem, ALG)
+  return cachedPublicKey
+}
+
 export async function getJwks(): Promise<{ keys: object[] }> {
   if (cachedJwks) return cachedJwks
-  const pem = await getPrivateKeyPem()
-  const privateKey = await importPKCS8(pem, ALG, { extractable: true })
+  const privateKey = await getSigningKey()
   const jwk = await exportJWK(privateKey)
   cachedJwks = {
     keys: [
@@ -49,11 +55,8 @@ export async function getKid(): Promise<string> {
 }
 
 export async function getPublicKeyThumbprint(): Promise<string> {
-  const pem = await getPrivateKeyPem()
-  const privateKey = await importPKCS8(pem, ALG, { extractable: true })
+  const privateKey = await getSigningKey()
   const jwk = await exportJWK(privateKey)
-  // Remove private fields for thumbprint
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { d, dp, dq, p, q, qi: _qi, ...publicJwk } = jwk
   const sortedKeys = Object.keys(publicJwk).sort() as Array<keyof typeof publicJwk>
   const data = JSON.stringify(

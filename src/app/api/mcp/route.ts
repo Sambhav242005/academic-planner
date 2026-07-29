@@ -6,7 +6,7 @@ import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/proto
 import { jwtVerify } from 'jose'
 import { auth } from '@/lib/auth/auth'
 import { validateApiKey } from '@/lib/mcp/auth'
-import { getSigningKey } from '@/lib/oauth/keys'
+import { getVerificationKey } from '@/lib/oauth/keys'
 import * as tools from '@/lib/mcp/tools'
 import { z } from 'zod'
 
@@ -30,14 +30,12 @@ function isMcpRateLimited(request: NextRequest): boolean {
 
 async function validateOAuthToken(token: string): Promise<string | null> {
   try {
-    const signingKey = await getSigningKey()
+    const verificationKey = await getVerificationKey()
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://planner.sambhav-surana.online'
-    console.log('[MCP] Validating token:', { issuer: baseUrl, audience: `${baseUrl}/api/mcp` })
-    const { payload } = await jwtVerify(token, signingKey, {
+    const { payload } = await jwtVerify(token, verificationKey, {
       issuer: baseUrl,
       audience: `${baseUrl}/api/mcp`,
     })
-    console.log('[MCP] Token valid, sub:', payload.sub)
     return (payload.sub as string) ?? null
   } catch (err) {
     console.error('[MCP] Token validation failed:', err instanceof Error ? err.message : err)
