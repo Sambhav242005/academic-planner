@@ -8,8 +8,17 @@ function getBaseUrl(): string {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
-  const { grant_type, code, redirect_uri, client_id, code_verifier } = body
+  const contentType = request.headers.get('content-type') || ''
+  let params: Record<string, string>
+
+  if (contentType.includes('application/x-www-form-urlencoded')) {
+    const text = await request.text()
+    params = Object.fromEntries(new URLSearchParams(text))
+  } else {
+    params = await request.json()
+  }
+
+  const { grant_type, code, redirect_uri, client_id, code_verifier } = params
 
   if (grant_type !== 'authorization_code') {
     return errorResponse('unsupported_grant_type', 'Only authorization_code grant is supported')
