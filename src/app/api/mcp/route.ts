@@ -304,15 +304,30 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  console.log('[MCP] Request received:', {
+    method: request.method,
+    accept: request.headers.get('accept'),
+    contentType: request.headers.get('content-type'),
+    mcpProtocolVersion: request.headers.get('mcp-protocol-version'),
+    mcpSessionId: request.headers.get('mcp-session-id'),
+    bodyType: typeof parsedBody,
+    bodyKeys: parsedBody && typeof parsedBody === 'object' ? Object.keys(parsedBody as object) : null,
+    bodyMethod: parsedBody && typeof parsedBody === 'object' ? (parsedBody as any).method : null,
+  })
+
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   })
 
+  transport.onerror = (err) => {
+    console.error('[MCP] Transport error:', err.message)
+  }
+
   const server = createServer()
   await server.connect(transport)
 
-  return transport.handleRequest(request, {
+  const response = await transport.handleRequest(request, {
     parsedBody,
     authInfo: {
       token: '',
@@ -321,6 +336,10 @@ export async function POST(request: NextRequest) {
       extra: { userId },
     },
   })
+
+  console.log('[MCP] Response:', { status: response.status, contentType: response.headers.get('content-type') })
+
+  return response
 }
 
 export async function GET() {
