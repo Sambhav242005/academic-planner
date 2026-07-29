@@ -22,14 +22,14 @@ async function getPrivateKeyPem(): Promise<string> {
 export async function getSigningKey(): Promise<CryptoKey> {
   if (cachedPrivateKey) return cachedPrivateKey
   const pem = await getPrivateKeyPem()
-  cachedPrivateKey = await importPKCS8(pem, ALG)
+  cachedPrivateKey = await importPKCS8(pem, ALG, { extractable: true })
   return cachedPrivateKey
 }
 
 export async function getJwks(): Promise<{ keys: object[] }> {
   if (cachedJwks) return cachedJwks
   const pem = await getPrivateKeyPem()
-  const privateKey = await importPKCS8(pem, ALG)
+  const privateKey = await importPKCS8(pem, ALG, { extractable: true })
   const jwk = await exportJWK(privateKey)
   cachedJwks = {
     keys: [
@@ -50,7 +50,7 @@ export async function getKid(): Promise<string> {
 
 export async function getPublicKeyThumbprint(): Promise<string> {
   const pem = await getPrivateKeyPem()
-  const privateKey = await importPKCS8(pem, ALG)
+  const privateKey = await importPKCS8(pem, ALG, { extractable: true })
   const jwk = await exportJWK(privateKey)
   // Remove private fields for thumbprint
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
