@@ -28,44 +28,49 @@ export async function POST(request: NextRequest) {
   const normalizedEmail = email.toLowerCase().trim()
   const supabase = createAdminClient()
 
-  // Look up OTP record
-  const { data: record } = await supabase
-    .schema('next_auth')
-    .from('otps')
-    .select('*')
-    .eq('identifier', normalizedEmail)
-    .maybeSingle()
+  // Demo user: skip OTP verification entirely
+  const isDemoUser = normalizedEmail === 'user@academic-planner.dev'
 
-  if (!record) {
-    return NextResponse.json({ error: 'No verification code found. Please request a new one.' }, { status: 400 })
-  }
-
-  if (new Date() > new Date(record.expires)) {
-    await supabase.schema('next_auth').from('otps').delete().eq('identifier', normalizedEmail)
-    return NextResponse.json({ error: 'Code expired. Please request a new one.' }, { status: 400 })
-  }
-
-  if (record.attempts >= 5) {
-    return NextResponse.json({ error: 'Too many attempts. Please request a new code.' }, { status: 429 })
-  }
-
-  // Verify OTP
-  const [salt, key] = record.otp_hash.split(':')
-  const { scryptSync } = await import('crypto')
-  const computedHash = scryptSync(otp, salt, 64).toString('hex')
-  const valid = computedHash === key
-
-  if (!valid) {
-    await supabase
+  if (!isDemoUser) {
+    // Look up OTP record
+    const { data: record } = await supabase
       .schema('next_auth')
       .from('otps')
-      .update({ attempts: (record.attempts ?? 0) + 1 })
+      .select('*')
       .eq('identifier', normalizedEmail)
-    return NextResponse.json({ error: 'Invalid code. Please try again.' }, { status: 400 })
-  }
+      .maybeSingle()
 
-  // Delete used OTP
-  await supabase.schema('next_auth').from('otps').delete().eq('identifier', normalizedEmail)
+    if (!record) {
+      return NextResponse.json({ error: 'No verification code found. Please request a new one.' }, { status: 400 })
+    }
+
+    if (new Date() > new Date(record.expires)) {
+      await supabase.schema('next_auth').from('otps').delete().eq('identifier', normalizedEmail)
+      return NextResponse.json({ error: 'Code expired. Please request a new one.' }, { status: 400 })
+    }
+
+    if (record.attempts >= 5) {
+      return NextResponse.json({ error: 'Too many attempts. Please request a new code.' }, { status: 429 })
+    }
+
+    // Verify OTP
+    const [salt, key] = record.otp_hash.split(':')
+    const { scryptSync } = await import('crypto')
+    const computedHash = scryptSync(otp, salt, 64).toString('hex')
+    const valid = computedHash === key
+
+    if (!valid) {
+      await supabase
+        .schema('next_auth')
+        .from('otps')
+        .update({ attempts: (record.attempts ?? 0) + 1 })
+        .eq('identifier', normalizedEmail)
+      return NextResponse.json({ error: 'Invalid code. Please try again.' }, { status: 400 })
+    }
+
+    // Delete used OTP
+    await supabase.schema('next_auth').from('otps').delete().eq('identifier', normalizedEmail)
+  }
 
   // Find or create user
   const { data: existingUser } = await supabase

@@ -18,6 +18,11 @@ export async function POST(req: NextRequest) {
 
   const client = createAdminClient()
 
+  // Demo user: skip OTP entirely — any code will work on verify
+  if (normalizedEmail === 'user@academic-planner.dev') {
+    return NextResponse.json({ ok: true, cooldown: 0, demo: true })
+  }
+
   const { data: existing } = await client
     .schema('next_auth')
     .from('otps')
