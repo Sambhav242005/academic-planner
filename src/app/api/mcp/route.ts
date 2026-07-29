@@ -32,12 +32,15 @@ async function validateOAuthToken(token: string): Promise<string | null> {
   try {
     const signingKey = await getSigningKey()
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://planner.sambhav-surana.online'
+    console.log('[MCP] Validating token:', { issuer: baseUrl, audience: `${baseUrl}/api/mcp` })
     const { payload } = await jwtVerify(token, signingKey, {
       issuer: baseUrl,
       audience: `${baseUrl}/api/mcp`,
     })
+    console.log('[MCP] Token valid, sub:', payload.sub)
     return (payload.sub as string) ?? null
-  } catch {
+  } catch (err) {
+    console.error('[MCP] Token validation failed:', err instanceof Error ? err.message : err)
     return null
   }
 }
@@ -258,6 +261,7 @@ export async function POST(request: NextRequest) {
 
   // Try OAuth Bearer token first (ChatGPT)
   const authHeader = request.headers.get('authorization')
+  console.log('[MCP] Auth header:', authHeader ? `${authHeader.slice(0, 20)}...` : 'none')
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
     userId = await validateOAuthToken(token)
