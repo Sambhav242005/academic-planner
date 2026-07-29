@@ -291,6 +291,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Pre-parse body to avoid stream consumption issues in Next.js App Router.
+  // The WebStandardStreamableHTTPServerTransport calls req.json() internally,
+  // but Next.js's ReadableStream body can only be consumed once.
+  let parsedBody: unknown
+  try {
+    parsedBody = await request.json()
+  } catch {
+    return new Response(
+      JSON.stringify({ jsonrpc: '2.0', error: { code: -32700, message: 'Parse error: Invalid JSON' }, id: null }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
@@ -299,14 +312,8 @@ export async function POST(request: NextRequest) {
   const server = createServer()
   await server.connect(transport)
 
-  const enhancedRequest = new Request(request.url, {
-    method: request.method,
-    headers: request.headers,
-    body: request.body,
-    duplex: 'half',
-  } as RequestInit & { duplex: string })
-
-  return transport.handleRequest(enhancedRequest, {
+  return transport.handleRequest(request, {
+    parsedBody,
     authInfo: {
       token: '',
       clientId: userId,
@@ -317,5 +324,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return new Response(JSON.stringify({ error: 'Use POST for MCP' }), { status: 405 })
+  // MCP Streamable HTTP spec: GET establishes an SSE stream for server-initiated messages.
+  // In stateless mode we don't support SSE streams, so return 405 per the SDK example.
+  return new Response(
+    JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null }),
+    { status: 405, headers: { Allow: 'POST', 'Content-Type': 'application/json' } }
+  )
 }
