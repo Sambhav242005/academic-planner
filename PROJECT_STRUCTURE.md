@@ -27,7 +27,7 @@ AcademicPlanner/
 │   │   │   │   ├── mcp/route.ts                  # Authenticated MCP server endpoint
 │   │   │   │   ├── profile/route.ts              # Authenticated profile API
 │   │   │   │   └── semesters/route.ts            # Authenticated semester API
-│   │   │   ├── providers.tsx       # QueryClient + ThemeProvider
+│   │   │   ├── providers.tsx       # PersistQueryClient + ThemeProvider + OfflineBanner
 │   │   │   ├── layout.tsx          # Root layout (fonts, metadata)
 │   │   │   └── globals.css         # Tailwind + shadcn/ui theme vars
 │   │   │
@@ -37,6 +37,10 @@ AcademicPlanner/
 │   │   │   │   ├── app-shell.tsx   # Sidebar + bottom nav + page transition
 │   │   │   │   └── theme-toggle.tsx # Dark/light toggle
 │   │   │   └── shared/             # Shared domain components
+│   │   │       ├── attendance-actions.tsx  # 4-button attendance status group
+│   │   │       ├── offline-banner.tsx      # Offline/syncing status banner
+│   │   │       ├── loading-bar.tsx         # Route transition progress bar
+│   │   │       └── empty-state.tsx         # Reusable empty state with icon + CTA
 │   │   │
 │   │   ├── features/               # Feature modules (each self-contained)
 │   │   │   ├── subjects/
@@ -53,6 +57,9 @@ AcademicPlanner/
 │   │   │
 │   │   ├── lib/
 │   │   │   ├── auth/auth.ts        # NextAuth config (Supabase adapter + Resend)
+│   │   │   ├── offline/
+│   │   │   │   ├── mutation-defaults.ts  # QueryClient factory + offline mutation cache
+│   │   │   │   └── use-offline-status.ts # Online/offline status hook
 │   │   │   ├── supabase/
 │   │   │   │   ├── client.ts       # Browser Supabase client
 │   │   │   │   ├── server.ts       # Server Supabase client (cookies)

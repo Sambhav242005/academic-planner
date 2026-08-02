@@ -118,7 +118,7 @@ export function CalendarPage() {
   const { calendar, setCalendarView, setCalendarDate, setSelectedDate } = useAppStore()
   const { year, month, view, selectedDate } = calendar
 
-  const selDate = new Date(selectedDate + 'T00:00:00')
+  const selDate = useMemo(() => new Date(selectedDate + 'T00:00:00'), [selectedDate])
 
   const rangeBounds = useMemo(() => {
     if (view === 'month') {
@@ -328,18 +328,18 @@ export function CalendarPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
           <Button
             variant="outline"
             size="icon"
             onClick={handlePrev}
             aria-label="Previous"
-            className="h-8 w-8"
+            className="h-9 w-9 sm:h-8 sm:w-8 shrink-0"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <p className="min-w-[180px] text-center font-semibold text-lg">
+          <p className="min-w-0 flex-1 text-center font-semibold text-base sm:text-lg truncate">
             {navLabel}
           </p>
           <Button
@@ -347,12 +347,12 @@ export function CalendarPage() {
             size="icon"
             onClick={handleNext}
             aria-label="Next"
-            className="h-8 w-8"
+            className="h-9 w-9 sm:h-8 sm:w-8 shrink-0"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <Button variant="secondary" size="sm" onClick={handleToday} aria-label="Go to today" className="font-medium">
+        <Button variant="secondary" size="sm" onClick={handleToday} aria-label="Go to today" className="font-medium shrink-0 hidden sm:flex">
           <CalendarDays className="h-4 w-4 mr-1.5" />
           Today
         </Button>
@@ -567,15 +567,16 @@ function WeekView({
   const weekDays = useMemo(() => getWeekDays(selDate), [selDate])
 
   return (
-    <div className="grid min-h-[500px] grid-cols-7 gap-px rounded-xl border bg-border/50 overflow-hidden">
+    <div className="flex flex-col sm:grid min-h-[500px] sm:grid-cols-7 gap-px rounded-xl border bg-border/50 overflow-hidden">
       {weekDays.map((day, i) => {
         const ds = dateStr(day)
         const today = isToday(day)
         const isHoliday = holidaySet.has(ds)
         const indianHoliday = isIndianHoliday(ds)
         const dayInstances = groupedByDate[ds] ?? []
+        const isTodayColumn = today && day.getDay() !== 0 && day.getDay() !== 6
         return (
-          <div key={ds} className={`flex min-w-0 flex-col bg-card ${today ? 'bg-primary/5' : ''}`}>
+          <div key={ds} className={`flex min-w-0 flex-col bg-card ${today ? 'bg-primary/5' : ''} ${!isTodayColumn && day.getDay() !== 0 && day.getDay() !== 6 ? 'hidden sm:flex' : ''} ${(day.getDay() === 0 || day.getDay() === 6) ? 'hidden' : ''}`}>
             <button
               onClick={() => onDayClick(day)}
               className={`flex items-center justify-center gap-1.5 px-1 py-3 text-sm transition-colors hover:bg-muted/50 border-b border-border/50 ${

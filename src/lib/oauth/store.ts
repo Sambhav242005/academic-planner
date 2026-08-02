@@ -1,9 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const CLIENT_ID = 'chatgpt-academic-planner'
-const REDIRECT_URI_PREFIXES = [
-  'https://chatgpt.com/connector/oauth/',
-  'https://chatgpt.com/connector_platform_oauth_redirect',
+// Exact redirect URIs registered with ChatGPT — no prefix matching
+const ALLOWED_REDIRECT_URIS = [
+  'https://chatgpt.com/connector/oauth/callback',
 ]
 
 export function getClientId(): string {
@@ -11,7 +11,7 @@ export function getClientId(): string {
 }
 
 export function isValidRedirectUri(uri: string): boolean {
-  return REDIRECT_URI_PREFIXES.some((prefix) => uri.startsWith(prefix))
+  return ALLOWED_REDIRECT_URIS.includes(uri)
 }
 
 export async function createAuthCode(params: {

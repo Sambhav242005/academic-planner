@@ -12,8 +12,8 @@
 │  RootLayout: Geist font, globals.css, <Providers>        │
 ├──────────────────────────────────────────────────────────┤
 │                    app/providers.tsx                      │
-│  Providers: QueryClientProvider + ThemeProvider +        │
-│             TooltipProvider                               │
+│  Providers: PersistQueryClientProvider + ThemeProvider +  │
+│             TooltipProvider + OfflineBanner               │
 ├──────────────────────────────────────────────────────────┤
 │               app/(dashboard)/layout.tsx                  │
 │  DashboardLayout: auth() check, <AppShell> wrapper        │
@@ -373,7 +373,35 @@ shadcn/ui components provide accessible interactions out of the box (focus manag
 
 ---
 
-## 9. Responsive Layout
+## 9. Shared Components
+
+Reusable domain-specific components in `src/components/shared/`.
+
+### AttendanceActions (`src/components/shared/attendance-actions.tsx`)
+
+Four-button group for setting attendance status (Present/Absent/Cancelled/Holiday). Shows a spinner on the clicked button while the mutation is pending. Used on both the dashboard and attendance page.
+
+```typescript
+<AttendanceActions
+  currentStatus={instance.attendance?.status ?? null}
+  onChange={(status) => handleStatusClick(instance, status)}
+  disabled={isPending}
+  pendingStatus={pendingStatus?.instanceId === instance.id ? pendingStatus.status : null}
+  size="sm" // optional — 'default' | 'sm'
+/>
+```
+
+### OfflineBanner (`src/components/shared/offline-banner.tsx`)
+
+Fixed banner at the top of the viewport. Shows amber background with "You're offline" when `navigator.onLine` is false, or a spinner with "Syncing pending changes…" when mutations are queued. Uses the `useOfflineStatus` hook from `src/lib/offline/use-offline-status.ts`.
+
+### LoadingBar (`src/components/shared/loading-bar.tsx`)
+
+Top-of-page progress bar that shows during route transitions.
+
+---
+
+## 10. Responsive Layout
 
 All feature components use Tailwind's responsive prefixes:
 
@@ -391,9 +419,11 @@ No JavaScript-based responsive logic — all layout changes are handled by Tailw
 
 ---
 
-## 10. Performance Characteristics
+## 11. Performance Characteristics
 
 - **TanStack Query caching:** Server data cached in memory, stale times configured per resource (2–30 min)
+- **localStorage persistence:** Query cache persists across page reloads via PersistQueryClientProvider
+- **Optimistic updates:** All mutations apply instantly to local cache, rollback on error
 - **No redundant re-renders:** Zustand atomic selectors prevent unnecessary component updates
 - **Skeleton loading:** Placeholder UI during data fetch prevents layout shift
 - **Lazy 'use client':** Only interactive pages are client components; layout is a server component

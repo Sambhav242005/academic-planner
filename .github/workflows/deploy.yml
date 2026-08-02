@@ -1,45 +1,159 @@
-name: Deploy to Pi
+name: Test and deploy to Raspberry Pi
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "mobile/**"
   workflow_dispatch:
 
 concurrency:
-  group: academic-planner-pi-deploy
-  cancel-in-progress: false
+  group: academic-planner-deploy
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  test:
+    name: Lint and typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
   deploy:
+    name: Deploy tested commit on Pi
+    needs: test
     runs-on:
       - self-hosted
       - ARM64
+    if: github.ref == 'refs/heads/main'
 
     env:
+      REPO_URL: https://github.com/${{ github.repository }}.git
       DEPLOY_DIR: /home/sambhav/academic-planner
 
     steps:
-      - name: Checkout repo
+      - name: Check out tested commit
         uses: actions/checkout@v4
 
-      - name: Sync repo on Pi
+      - name: Sync tested commit
         shell: bash
         run: |
           set -euo pipefail
-          if [ ! -d "$DEPLOY_DIR/.git" ]; then
-            git clone "https://github.com/Sambhav242005/academic-planner.git" "$DEPLOY_DIR"
-          fi
-          git -C "$DEPLOY_DIR" fetch --force origin main
-          git -C "$DEPLOY_DIR" checkout -B main "$GITHUB_SHA"
-          git -C "$DEPLOY_DIR" reset --hard "$GITHUB_SHA"
-          git -C "$DEPLOY_DIR" clean -fdx
+          runner_user="$(id -un)"
+          runner_group="$(id -gn)"
+          deploy_parent="$(dirname "$DEPLOY_DIR")"
+          sudo install -d -o "$runner_user" -g "$runner_group" "$deploy_parent"
 
-      - name: Restart Docker stack
+          if [ -e "$DEPLOY_DIR" ] && [ ! -d "$DEPLOY_DIR/.git" ]; then
+            backup_dir="${DEPLOY_DIR}.pre-docker.$(date +%Y%m%d%H%M%S)"
+            mv "$DEPLOY_DIR" "$backup_dir"
+          fi
+
+          if [ ! -d "$DEPLOY_DIR/.git" ]; then
+            git clone "$REPO_URL" "$DEPLOY_DIR"
+          fi
+
+          git -C "$DEPLOY_DIR" fetch --force origin main
+          git -C "$DEPLOY_DIR" checkout -f -B main "$GITHUB_SHA"
+          git -C "$DEPLOY_DIR" reset --hard "$GITHUB_SHA"
+          # Preserve .env and .next across deploys — only wipe tracked + build artifacts
+          git -C "$DEPLOY_DIR" clean -fd --exclude='.env' --exclude='.next'
+
+      - name: Ensure .env exists
         shell: bash
         working-directory: ${{ env.DEPLOY_DIR }}
         run: |
           set -euo pipefail
-          sudo docker compose up -d --build --remove-orphans
+          if [ ! -f .env ]; then
+            echo "::error::Missing .env in ${DEPLOY_DIR}. Create it before deploying."
+            exit 1
+          fi
+
+      - name: Retire stale containers
+        shell: bash
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          set -euo pipefail
+
+          for container in academic-planner-app-1; do
+            if ! sudo docker container inspect "$container" >/dev/null 2>&1; then
+              continue
+            fi
+
+            project="$(sudo docker inspect -f '{{ index .Config.Labels "com.docker.compose.project" }}' "$container" 2>/dev/null || true)"
+            config_hash="$(sudo docker inspect -f '{{ index .Config.Labels "com.docker.compose.config-hash" }}' "$container" 2>/dev/null || true)"
+
+            if [ "$project" != "academic-planner" ] || [ -z "$config_hash" ] || [ "$config_hash" = "<no value>" ]; then
+              sudo docker rm -f "$container"
+            fi
+          done
+
+      - name: Build and restart Docker stack
+        shell: bash
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          set -euo pipefail
+          # Tag current images before rebuild for rollback
+          for svc in app; do
+            img="academic-planner-${svc}"
+            if sudo docker image inspect "$img:latest" >/dev/null 2>&1; then
+              sudo docker tag "$img:latest" "$img:previous" || true
+            fi
+          done
+
+          sudo docker compose -f docker-compose.yml --project-name academic-planner up -d --build --remove-orphans
+          sudo docker compose -f docker-compose.yml --project-name academic-planner ps
+
+      - name: Verify deployed stack
+        shell: bash
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          set -euo pipefail
+          # Wait up to 60 seconds for the app to become healthy
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:32768/ >/dev/null 2>&1; then
+              echo "App is responding on attempt ${attempt}"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "::error::App failed to respond after 30 attempts"
+              sudo docker compose -f docker-compose.yml --project-name academic-planner logs --tail=50
+              # Rollback to previous images
+              for svc in app; do
+                img="academic-planner-${svc}"
+                if sudo docker image inspect "$img:previous" >/dev/null 2>&1; then
+                  sudo docker tag "$img:previous" "$img:latest"
+                fi
+              done
+              sudo docker compose -f docker-compose.yml --project-name academic-planner up -d --remove-orphans
+              exit 1
+            fi
+            sleep 2
+          done
+
+          sudo docker compose -f docker-compose.yml --project-name academic-planner ps
+
+      - name: Notify on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "::error::Deploy failed for ${{ github.sha }} — manual intervention may be needed"

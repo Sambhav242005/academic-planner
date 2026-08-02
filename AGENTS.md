@@ -8,7 +8,7 @@ A personal academic planner for Indian MBBS college students that answers one qu
 
 ```
 Tech Stack (current — Next.js rewrite):
-  Frontend:  Next.js 14 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui
+  Frontend:  Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui
   State:     Zustand (UI state) + TanStack Query (server state)
   Backend:   Supabase (Postgres, Auth via NextAuth adapter, Storage)
   Auth:      NextAuth.js v5 with Supabase adapter, Magic Link via Resend
@@ -167,8 +167,15 @@ A feature is done when:
 | Settings (profile, target, semesters, export/import, MCP keys) | ✅ |
 | MCP Server (full data access tools) | ✅ |
 | Animations (motion.dev page transitions, stagger) | ✅ |
+| Semester start/end dates | ✅ |
+| Retroactive instance generation (default absent) | ✅ |
+| Responsive timetable (day tabs on mobile) | ✅ |
+| Shared AttendanceActions with spinner feedback | ✅ |
+| Performance (staleTime, count queries) | ✅ |
+| Mobile responsiveness (all critical + major) | ✅ |
+| Offline queue with optimistic updates | ✅ |
 
-**Next:** Connect to Supabase project, seed data, deploy.
+**Next:** Connect to Supabase project, seed data, deploy. Test offline queue behavior end-to-end.
 
 ## Document Cross-References
 

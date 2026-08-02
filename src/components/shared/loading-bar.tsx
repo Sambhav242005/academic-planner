@@ -1,14 +1,17 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 export function LoadingBar() {
   const pathname = usePathname()
   const [progress, setProgress] = useState(0)
   const [visible, setVisible] = useState(false)
+  const prevPathname = useRef(pathname)
 
   useEffect(() => {
+    if (prevPathname.current === pathname) return
+    prevPathname.current = pathname
     setVisible(true)
     setProgress(0)
 

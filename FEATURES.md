@@ -16,7 +16,8 @@ All features below are **implemented** in the Next.js rewrite (`academic-planner
 8. Analytics
 9. Calculator
 10. Settings
-11. MCP Server
+11. Offline Queue with Optimistic Updates
+12. MCP Server
 
 ---
 
@@ -382,7 +383,36 @@ Configure app preferences, manage account, and handle data.
 
 ---
 
-## 11. MCP Server
+## 11. Offline Queue with Optimistic Updates
+
+### Description
+
+All mutations (attendance, tasks, subjects, timetable, settings) use optimistic updates for instant UI feedback. When offline, changes queue in TanStack Query's mutation cache and sync automatically when reconnected.
+
+### Key Components
+
+- `src/lib/offline/mutation-defaults.ts` — Query client factory with offline-aware mutation cache
+- `src/lib/offline/use-offline-status.ts` — Online/offline status hook
+- `src/components/shared/offline-banner.tsx` — Visual banner for offline/pending state
+- `src/app/providers.tsx` — PersistQueryClientProvider with localStorage persister
+
+### Behaviour
+
+- **Optimistic updates:** Every mutation instantly updates the local cache before the server responds
+- **Rollback on error:** If the server rejects the change, the cache reverts to the previous state
+- **Offline detection:** Banner appears when browser goes offline
+- **Auto-sync:** Pending mutations flush when connection is restored
+- **Persistence:** Query cache persists to localStorage across page reloads
+
+### States
+
+- **Online:** No banner, mutations apply instantly
+- **Offline:** Amber banner "You're offline — changes will sync when reconnected"
+- **Syncing:** Spinner banner "Syncing pending changes…"
+
+---
+
+## 12. MCP Server
 
 ### Description
 

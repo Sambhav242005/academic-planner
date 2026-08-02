@@ -1,0 +1,500 @@
+{
+  "nodes": [
+    {
+      "id": "academic-planner",
+      "type": "project",
+      "label": "Academic Planner",
+      "description": "Personal academic planner for Indian MBBS students",
+      "source_file": "README.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "nextjs",
+      "type": "technology",
+      "label": "Next.js 14",
+      "description": "React framework with App Router",
+      "source_file": "AGENTS.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "supabase",
+      "type": "technology",
+      "label": "Supabase",
+      "description": "PostgreSQL database with Auth",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "nextauth",
+      "type": "technology",
+      "label": "NextAuth.js v5",
+      "description": "Authentication with OTP provider",
+      "source_file": "AI.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "tanstack-query",
+      "type": "technology",
+      "label": "TanStack Query",
+      "description": "Server state management",
+      "source_file": "STATE_MANAGEMENT.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "zustand",
+      "type": "technology",
+      "label": "Zustand",
+      "description": "UI state management",
+      "source_file": "STATE_MANAGEMENT.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "tailwind",
+      "type": "technology",
+      "label": "Tailwind CSS v4",
+      "description": "Utility-first CSS framework",
+      "source_file": "AGENTS.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "shadcn-ui",
+      "type": "technology",
+      "label": "shadcn/ui",
+      "description": "UI component library",
+      "source_file": "COMPONENTS.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "mcp-server",
+      "type": "feature",
+      "label": "MCP Server",
+      "description": "AI integration via Model Context Protocol",
+      "source_file": "AI.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "motion-dev",
+      "type": "technology",
+      "label": "motion.dev",
+      "description": "Animation library",
+      "source_file": "AGENTS.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "resend",
+      "type": "technology",
+      "label": "Resend",
+      "description": "Email delivery for OTP",
+      "source_file": "AI.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "subjects-feature",
+      "type": "feature",
+      "label": "Subjects CRUD",
+      "description": "Create/read/update/delete academic subjects",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "timetable-feature",
+      "type": "feature",
+      "label": "Timetable",
+      "description": "Recurring class schedule management",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "attendance-feature",
+      "type": "feature",
+      "label": "Attendance Tracking",
+      "description": "Mark and track class attendance",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "tasks-feature",
+      "type": "feature",
+      "label": "Tasks",
+      "description": "Task management with priorities",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "calendar-feature",
+      "type": "feature",
+      "label": "Calendar",
+      "description": "Month/Week/Day views with attendance",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "analytics-feature",
+      "type": "feature",
+      "label": "Analytics",
+      "description": "Attendance statistics and breakdowns",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "dashboard-feature",
+      "type": "feature",
+      "label": "Dashboard",
+      "description": "Today's classes and overview",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "settings-feature",
+      "type": "feature",
+      "label": "Settings",
+      "description": "Profile, semesters, export/import",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "profiles-table",
+      "type": "database",
+      "label": "profiles",
+      "description": "User profile with display_name, college, target",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "subjects-table",
+      "type": "database",
+      "label": "subjects",
+      "description": "Academic subjects with color",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "semesters-table",
+      "type": "database",
+      "label": "semesters",
+      "description": "Semester definitions with active flag",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "recurring-classes-table",
+      "type": "database",
+      "label": "recurring_classes",
+      "description": "Weekly class schedule entries",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "class-instances-table",
+      "type": "database",
+      "label": "class_instances",
+      "description": "Generated class instances from schedule",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "attendance-records-table",
+      "type": "database",
+      "label": "attendance_records",
+      "description": "Present/Absent/Cancelled/Holiday status",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "tasks-table",
+      "type": "database",
+      "label": "tasks",
+      "description": "User and AI-created tasks",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "holidays-table",
+      "type": "database",
+      "label": "holidays",
+      "description": "Holiday dates",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-subjects",
+      "type": "api",
+      "label": "/api/subjects",
+      "description": "Subjects CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-timetable",
+      "type": "api",
+      "label": "/api/timetable",
+      "description": "Timetable CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-attendance",
+      "type": "api",
+      "label": "/api/attendance",
+      "description": "Attendance mark/view endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-tasks",
+      "type": "api",
+      "label": "/api/tasks",
+      "description": "Tasks CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-calendar",
+      "type": "api",
+      "label": "/api/calendar",
+      "description": "Calendar data endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-dashboard",
+      "type": "api",
+      "label": "/api/dashboard",
+      "description": "Dashboard data endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-analytics",
+      "type": "api",
+      "label": "/api/analytics",
+      "description": "Analytics data endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-profile",
+      "type": "api",
+      "label": "/api/profile",
+      "description": "Profile CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-semesters",
+      "type": "api",
+      "label": "/api/semesters",
+      "description": "Semesters CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95
+    },
+    {
+      "id": "api-mcp",
+      "type": "api",
+      "label": "/api/mcp",
+      "description": "MCP server endpoint for AI",
+      "source_file": "AI.md",
+      "confidence": 0.95
+    }
+  ],
+  "edges": [
+    {
+      "source": "academic-planner",
+      "target": "nextjs",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "supabase",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "nextauth",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "tanstack-query",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "zustand",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "tailwind",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "shadcn-ui",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "mcp-server",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "motion-dev",
+      "type": "uses"
+    },
+    {
+      "source": "academic-planner",
+      "target": "resend",
+      "type": "uses"
+    },
+    {
+      "source": "subjects-feature",
+      "target": "subjects-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "subjects-feature",
+      "target": "api-subjects",
+      "type": "calls"
+    },
+    {
+      "source": "timetable-feature",
+      "target": "recurring-classes-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "timetable-feature",
+      "target": "api-timetable",
+      "type": "calls"
+    },
+    {
+      "source": "attendance-feature",
+      "target": "attendance-records-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "attendance-feature",
+      "target": "class-instances-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "attendance-feature",
+      "target": "api-attendance",
+      "type": "calls"
+    },
+    {
+      "source": "tasks-feature",
+      "target": "tasks-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "tasks-feature",
+      "target": "api-tasks",
+      "type": "calls"
+    },
+    {
+      "source": "calendar-feature",
+      "target": "class-instances-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "calendar-feature",
+      "target": "holidays-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "calendar-feature",
+      "target": "api-calendar",
+      "type": "calls"
+    },
+    {
+      "source": "analytics-feature",
+      "target": "attendance-records-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "analytics-feature",
+      "target": "api-analytics",
+      "type": "calls"
+    },
+    {
+      "source": "dashboard-feature",
+      "target": "recurring-classes-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "dashboard-feature",
+      "target": "class-instances-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "dashboard-feature",
+      "target": "api-dashboard",
+      "type": "calls"
+    },
+    {
+      "source": "settings-feature",
+      "target": "profiles-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "settings-feature",
+      "target": "semesters-table",
+      "type": "reads_from"
+    },
+    {
+      "source": "settings-feature",
+      "target": "api-profile",
+      "type": "calls"
+    },
+    {
+      "source": "settings-feature",
+      "target": "api-semesters",
+      "type": "calls"
+    },
+    {
+      "source": "mcp-server",
+      "target": "api-mcp",
+      "type": "exposes"
+    },
+    {
+      "source": "subjects-table",
+      "target": "semesters-table",
+      "type": "references"
+    },
+    {
+      "source": "recurring-classes-table",
+      "target": "subjects-table",
+      "type": "references"
+    },
+    {
+      "source": "recurring-classes-table",
+      "target": "semesters-table",
+      "type": "references"
+    },
+    {
+      "source": "class-instances-table",
+      "target": "recurring-classes-table",
+      "type": "references"
+    },
+    {
+      "source": "class-instances-table",
+      "target": "subjects-table",
+      "type": "references"
+    },
+    {
+      "source": "attendance-records-table",
+      "target": "class-instances-table",
+      "type": "references"
+    },
+    {
+      "source": "tasks-table",
+      "target": "subjects-table",
+      "type": "references"
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

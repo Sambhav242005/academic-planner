@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const uuid = z.string().uuid().optional()
 const date = z.string().date()
@@ -21,7 +22,9 @@ const importData = z.object({
 
 export async function GET() {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'settings/data', undefined, isDemo)
+    if (demo) return demo
     const supabase = createAdminClient()
     const tables = ['subjects', 'recurring_classes', 'class_instances', 'attendance_records', 'tasks', 'holidays', 'semesters'] as const
     const entries = await Promise.all(tables.map(async (table) => {
@@ -39,7 +42,9 @@ export async function POST(request: Request) {
   try {
     const contentLength = Number(request.headers.get('content-length') ?? 0)
     if (contentLength > 2_000_000) throw new ApiError('Import file is too large.', 413)
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'settings/data', request, isDemo)
+    if (demo) return demo
     const input = importData.parse(await request.json())
     const supabase = createAdminClient()
     const subjectIds = new Map<string, string>()
@@ -47,16 +52,6 @@ export async function POST(request: Request) {
     const recurringIds = new Map<string, string>()
     const instanceIds = new Map<string, string>()
 
-    for (const subject of input.subjects) {
-      const { data, error } = await supabase.from('subjects').insert({
-        user_id: userId,
-        name: subject.name,
-        color: subject.color.toLowerCase(),
-        semester_id: semesterIds.get(subject.semester_id ?? subject.semesterId ?? '') ?? null,
-      }).select('id').single()
-      if (error) throw error
-      if (subject.id) subjectIds.set(subject.id, data.id)
-    }
     for (const semester of input.semesters) {
       const active = semester.is_active ?? semester.isActive ?? false
       const { data, error } = await supabase.from('semesters').insert({ user_id: userId, label: semester.label, is_active: false }).select('id').single()
@@ -70,6 +65,16 @@ export async function POST(request: Request) {
       if (error) throw error
       const { error: activateError } = await supabase.from('semesters').update({ is_active: true }).eq('id', activeSemester).eq('user_id', userId)
       if (activateError) throw activateError
+    }
+    for (const subject of input.subjects) {
+      const { data, error } = await supabase.from('subjects').insert({
+        user_id: userId,
+        name: subject.name,
+        color: subject.color.toLowerCase(),
+        semester_id: semesterIds.get(subject.semester_id ?? subject.semesterId ?? '') ?? null,
+      }).select('id').single()
+      if (error) throw error
+      if (subject.id) subjectIds.set(subject.id, data.id)
     }
     for (const recurring of input.recurring_classes) {
       const subjectId = subjectIds.get(recurring.subject_id ?? recurring.subjectId ?? '')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
@@ -41,12 +41,16 @@ export function SettingsPage() {
   const [displayName, setDisplayName] = useState('')
   const [college, setCollege] = useState('')
   const [targetPct, setTargetPct] = useState('')
-  const [profileLoaded, setProfileLoaded] = useState(false)
+  const profileHydrated = useRef(false)
 
   const [newSemesterLabel, setNewSemesterLabel] = useState('')
+  const [newSemesterStartDate, setNewSemesterStartDate] = useState('')
+  const [newSemesterEndDate, setNewSemesterEndDate] = useState('')
   const [semesterDialogOpen, setSemesterDialogOpen] = useState(false)
   const [editingSemesterId, setEditingSemesterId] = useState<string | null>(null)
   const [editingSemesterLabel, setEditingSemesterLabel] = useState('')
+  const [editingSemesterStartDate, setEditingSemesterStartDate] = useState('')
+  const [editingSemesterEndDate, setEditingSemesterEndDate] = useState('')
 
   const [generatedKey, setGeneratedKey] = useState('')
   const [keyDialogOpen, setKeyDialogOpen] = useState(false)
@@ -64,13 +68,13 @@ export function SettingsPage() {
   })
 
   useEffect(() => {
-    if (profile && !profileLoaded) {
+    if (profile && !profileHydrated.current) {
+      profileHydrated.current = true
       setDisplayName(profile.displayName ?? '')
       setCollege(profile.college ?? '')
       setTargetPct(String(profile.defaultTarget ?? 75))
-      setProfileLoaded(true)
     }
-  }, [profile, profileLoaded])
+  }, [profile])
 
   const MAX_PROFILE_NAME = 50
   const MAX_COLLEGE = 100
@@ -107,26 +111,48 @@ export function SettingsPage() {
     queryFn: async () => {
       const res = await fetch('/api/semesters')
       if (!res.ok) return []
-      return res.json()
+      const data = await res.json()
+      // Normalize snake_case (from demo intercept) to camelCase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data as any[]).map((s) => ({
+        ...s,
+        isActive: s.isActive ?? s.is_active ?? false,
+        startDate: s.startDate ?? s.start_date ?? null,
+        endDate: s.endDate ?? s.end_date ?? null,
+      }))
     },
   })
 
   const addSemesterMutation = useMutation({
-    mutationFn: async (label: string) => {
+    mutationFn: async ({ label, startDate, endDate }: { label: string; startDate?: string | null; endDate?: string | null }) => {
       const res = await fetch('/api/semesters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label }),
+        body: JSON.stringify({ label, startDate: startDate || null, endDate: endDate || null }),
       })
       if (!res.ok) {
         const body = await res.json()
         throw new Error(body.error || 'Failed to add semester')
       }
+      return res.json() as Promise<{ id: string }>
     },
-    onSuccess: () => {
+    onMutate: async ({ label }) => {
+      await queryClient.cancelQueries({ queryKey: ['semesters'] })
+      const previous = queryClient.getQueryData(['semesters'])
+      const newSem = { id: `temp-${Date.now()}`, label, isActive: false, startDate: null, endDate: null }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['semesters'], (old: any[]) => [...(old ?? []), newSem])
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['semesters'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['semesters'] })
       setSemesterDialogOpen(false)
       setNewSemesterLabel('')
+      setNewSemesterStartDate('')
+      setNewSemesterEndDate('')
     },
   })
 
@@ -142,7 +168,20 @@ export function SettingsPage() {
         throw new Error(body.error || 'Failed to set active semester')
       }
     },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['semesters'] })
+      const previous = queryClient.getQueryData(['semesters'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['semesters'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((s: any) => ({ ...s, isActive: s.id === id }))
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['semesters'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['semesters'] })
       queryClient.invalidateQueries({ queryKey: ['active-semester'] })
       queryClient.invalidateQueries({ queryKey: ['subjects'] })
@@ -153,22 +192,37 @@ export function SettingsPage() {
   })
 
   const updateSemesterMutation = useMutation({
-    mutationFn: async ({ id, label }: { id: string; label: string }) => {
+    mutationFn: async ({ id, label, startDate, endDate }: { id: string; label: string; startDate?: string | null; endDate?: string | null }) => {
       const res = await fetch('/api/semesters', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, label }),
+        body: JSON.stringify({ id, label, startDate: startDate ?? undefined, endDate: endDate ?? undefined }),
       })
       if (!res.ok) {
         const body = await res.json()
         throw new Error(body.error || 'Failed to update semester')
       }
     },
-    onSuccess: () => {
+    onMutate: async ({ id, label }) => {
+      await queryClient.cancelQueries({ queryKey: ['semesters'] })
+      const previous = queryClient.getQueryData(['semesters'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['semesters'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((s: any) => (s.id === id ? { ...s, label } : s))
+      )
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['semesters'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['semesters'] })
       queryClient.invalidateQueries({ queryKey: ['active-semester'] })
       setEditingSemesterId(null)
       setEditingSemesterLabel('')
+      setEditingSemesterStartDate('')
+      setEditingSemesterEndDate('')
     },
   })
 
@@ -179,7 +233,14 @@ export function SettingsPage() {
     queryFn: async () => {
       const res = await fetch('/api/semesters?active=true')
       if (!res.ok) return null
-      return res.json()
+      const data = await res.json()
+      if (!data) return null
+      return {
+        ...data,
+        isActive: data.isActive ?? data.is_active ?? true,
+        startDate: data.startDate ?? data.start_date ?? null,
+        endDate: data.endDate ?? data.end_date ?? null,
+      }
     },
   })
 
@@ -195,7 +256,20 @@ export function SettingsPage() {
         throw new Error(body.error || 'Failed to delete semester')
       }
     },
-    onSuccess: (_data, deletedId) => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['semesters'] })
+      const previous = queryClient.getQueryData(['semesters'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['semesters'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).filter((s: any) => s.id !== id)
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['semesters'], context.previous)
+    },
+    onSettled: (_data, _error, deletedId) => {
       const wasActive = activeSemester?.id === deletedId
       queryClient.invalidateQueries({ queryKey: ['semesters'] })
       queryClient.invalidateQueries({ queryKey: ['active-semester'] })
@@ -446,45 +520,73 @@ export function SettingsPage() {
             </div>
           ) : semesters && semesters.length > 0 ? (
             <div className="space-y-2">
-              {semesters.map((s: { id: string; label: string; isActive: boolean }) => (
+              {semesters.map((s: { id: string; label: string; isActive: boolean; startDate?: string | null; endDate?: string | null }) => (
                 <div
                   key={s.id}
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
-                  <div className="flex min-w-0 items-center gap-2">
-                    {editingSemesterId === s.id ? (
-                      <Input
-                        aria-label="Semester name"
-                        value={editingSemesterLabel}
-                        onChange={(e) => setEditingSemesterLabel(e.target.value)}
-                        maxLength={80}
-                        className="h-7 max-w-xs"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && editingSemesterLabel.trim()) {
-                            updateSemesterMutation.mutate({ id: s.id, label: editingSemesterLabel.trim() })
-                          }
-                          if (e.key === 'Escape') setEditingSemesterId(null)
-                        }}
-                      />
-                    ) : (
-                      <span className="truncate text-sm font-medium">{s.label}</span>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      {editingSemesterId === s.id ? (
+                        <Input
+                          aria-label="Semester name"
+                          value={editingSemesterLabel}
+                          onChange={(e) => setEditingSemesterLabel(e.target.value)}
+                          maxLength={80}
+                          className="h-7 max-w-xs"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && editingSemesterLabel.trim()) {
+                              updateSemesterMutation.mutate({ id: s.id, label: editingSemesterLabel.trim(), startDate: editingSemesterStartDate || null, endDate: editingSemesterEndDate || null })
+                            }
+                            if (e.key === 'Escape') setEditingSemesterId(null)
+                          }}
+                        />
+                      ) : (
+                        <span className="truncate text-sm font-medium">{s.label}</span>
+                      )}
+                      {s.isActive && (
+                        <Badge variant="default" className="text-[10px] bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20">
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                    {(s.startDate || s.endDate) && editingSemesterId !== s.id && (
+                      <p className="text-xs text-muted-foreground">
+                        {s.startDate ? new Date(s.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : '…'}
+                        {' — '}
+                        {s.endDate ? new Date(s.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'ongoing'}
+                      </p>
                     )}
-                    {s.isActive && (
-                      <Badge variant="default" className="text-[10px]">
-                        Active
-                      </Badge>
+                    {editingSemesterId === s.id && (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="date"
+                          aria-label="Start date"
+                          value={editingSemesterStartDate}
+                          onChange={(e) => setEditingSemesterStartDate(e.target.value)}
+                          className="h-7 w-auto text-xs"
+                        />
+                        <span className="text-xs text-muted-foreground">—</span>
+                        <Input
+                          type="date"
+                          aria-label="End date"
+                          value={editingSemesterEndDate}
+                          onChange={(e) => setEditingSemesterEndDate(e.target.value)}
+                          className="h-7 w-auto text-xs"
+                        />
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
+                   <div className="flex items-center gap-1">
                     {editingSemesterId === s.id ? (
                       <>
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => updateSemesterMutation.mutate({ id: s.id, label: editingSemesterLabel.trim() })}
+                          onClick={() => updateSemesterMutation.mutate({ id: s.id, label: editingSemesterLabel.trim(), startDate: editingSemesterStartDate || null, endDate: editingSemesterEndDate || null })}
                           disabled={!editingSemesterLabel.trim() || updateSemesterMutation.isPending}
-                          aria-label="Save semester name"
+                          aria-label="Save semester"
                         >
                           <Check className="h-3.5 w-3.5" />
                         </Button>
@@ -493,30 +595,34 @@ export function SettingsPage() {
                         </Button>
                       </>
                     ) : (
+                      <>
                         <Button
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => {
                             setEditingSemesterId(s.id)
                             setEditingSemesterLabel(s.label)
+                            setEditingSemesterStartDate(s.startDate ?? '')
+                            setEditingSemesterEndDate(s.endDate ?? '')
                           }}
                           aria-label={`Edit ${s.label}`}
                           title={`Edit ${s.label}`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                    )}
-                    {!s.isActive && (
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setActiveSemesterMutation.mutate(s.id)}
-                        disabled={setActiveSemesterMutation.isPending}
-                        aria-label="Set as active semester"
-                        title="Set as active"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </Button>
+                        {!s.isActive && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setActiveSemesterMutation.mutate(s.id)}
+                            disabled={setActiveSemesterMutation.isPending}
+                            aria-label="Set as active semester"
+                            title="Set as active"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </>
                     )}
                     <Button
                       variant="ghost"
@@ -541,7 +647,7 @@ export function SettingsPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add Semester</DialogTitle>
-                <DialogDescription>Enter a label for this semester.</DialogDescription>
+                <DialogDescription>Enter a label and optional dates for this semester.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -553,10 +659,34 @@ export function SettingsPage() {
                     onChange={(e) => setNewSemesterLabel(e.target.value)}
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="semester-start">Start Date</Label>
+                    <Input
+                      id="semester-start"
+                      type="date"
+                      value={newSemesterStartDate}
+                      onChange={(e) => setNewSemesterStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="semester-end">End Date</Label>
+                    <Input
+                      id="semester-end"
+                      type="date"
+                      value={newSemesterEndDate}
+                      onChange={(e) => setNewSemesterEndDate(e.target.value)}
+                    />
+                  </div>
+                </div>
                 <Button
                   onClick={() => {
                     if (newSemesterLabel.trim()) {
-                      addSemesterMutation.mutate(newSemesterLabel.trim())
+                      addSemesterMutation.mutate({
+                        label: newSemesterLabel.trim(),
+                        startDate: newSemesterStartDate || null,
+                        endDate: newSemesterEndDate || null,
+                      })
                     }
                   }}
                   disabled={!newSemesterLabel.trim() || addSemesterMutation.isPending}

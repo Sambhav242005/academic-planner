@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
   const normalizedEmail = email.toLowerCase().trim()
   const supabase = createAdminClient()
 
-  // Demo user: skip OTP verification entirely
-  const isDemoUser = normalizedEmail === 'user@academic-planner.dev'
+  // Demo user: skip OTP verification entirely (only in dev or when ENABLE_DEMO is set)
+  const isDemoUser = normalizedEmail === 'user@academic-planner.dev' && (process.env.NODE_ENV === 'development' || process.env.ENABLE_DEMO === 'true')
 
   if (!isDemoUser) {
     // Look up OTP record
@@ -96,6 +96,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
     }
     userId = newUser.id
+  }
+
+  // Validate OAuth params server-side — don't trust client-supplied values
+  const expectedClientId = 'chatgpt-academic-planner'
+  if (oauthParams.clientId !== expectedClientId) {
+    return NextResponse.json({ error: 'Invalid client ID' }, { status: 400 })
+  }
+  if (oauthParams.codeChallengeMethod !== 'S256') {
+    return NextResponse.json({ error: 'Unsupported code challenge method' }, { status: 400 })
+  }
+
+  // Validate redirect URI — exact match only (registered redirect URIs)
+  const ALLOWED_REDIRECT_URIS = ['https://chatgpt.com/connector/oauth/callback']
+  if (!ALLOWED_REDIRECT_URIS.includes(oauthParams.redirectUri)) {
+    return NextResponse.json({ error: 'Invalid redirect URI' }, { status: 400 })
   }
 
   // Create authorization code

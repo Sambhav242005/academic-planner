@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireOwnedOptionalReference, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireOwnedOptionalReference, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const classType = z.enum(['theory', 'clinical', 'practical', 'tutorial', 'exam'])
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Invalid time')
@@ -17,7 +18,9 @@ const deleteInput = z.object({ id: z.string().uuid() })
 
 export async function GET(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'timetable', request, isDemo)
+    if (demo) return demo
     const semesterId = new URL(request.url).searchParams.get('semesterId')
     const supabase = createAdminClient()
     let query = supabase
@@ -38,7 +41,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'timetable', request, isDemo)
+    if (demo) return demo
     const input = classInput.parse(await request.json())
     await requireOwnedOptionalReference('subjects', input.subjectId, userId)
     await requireOwnedOptionalReference('semesters', input.semesterId, userId)
@@ -65,7 +70,9 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'PATCH', 'timetable', request, isDemo)
+    if (demo) return demo
     const input = updateInput.parse(await request.json())
     await requireOwnedOptionalReference('subjects', input.subjectId, userId)
     if (input.endTime && input.endTime <= input.startTime) throw new ApiError('End time must be after start time')
@@ -92,7 +99,9 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'DELETE', 'timetable', request, isDemo)
+    if (demo) return demo
     const { id } = deleteInput.parse(await request.json())
     const { data, error } = await createAdminClient()
       .from('recurring_classes')

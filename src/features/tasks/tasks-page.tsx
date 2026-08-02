@@ -132,8 +132,32 @@ export function TasksPage() {
         body: JSON.stringify(values),
       })
       if (!response.ok) throw new Error('Could not create task')
+      return response.json() as Promise<{ id: string }>
     },
-    onSuccess: () => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      const previous = queryClient.getQueryData(['tasks'])
+      const newTask = {
+        id: `temp-${Date.now()}`,
+        title: values.title,
+        subjectId: values.subjectId,
+        subjectName: subjects?.find((s) => s.id === values.subjectId)?.name ?? null,
+        subjectColor: subjects?.find((s) => s.id === values.subjectId)?.color ?? null,
+        dueDate: values.dueDate,
+        priority: values.priority,
+        note: values.note,
+        completed: false,
+        source: 'manual' as const,
+        createdAt: new Date().toISOString(),
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['tasks'], (old: any[]) => [newTask, ...(old ?? [])])
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['tasks'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       setOpen(false)
     },
@@ -155,7 +179,20 @@ export function TasksPage() {
       })
       if (!response.ok) throw new Error('Could not update task')
     },
-    onSuccess: () => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      const previous = queryClient.getQueryData(['tasks'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['tasks'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((t: any) => (t.id === values.id ? { ...t, ...values } : t))
+      )
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['tasks'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       setOpen(false)
     },
@@ -170,7 +207,20 @@ export function TasksPage() {
       })
       if (!response.ok) throw new Error('Could not update task')
     },
-    onSuccess: () => {
+    onMutate: async ({ id, completed }) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      const previous = queryClient.getQueryData(['tasks'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['tasks'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((t: any) => (t.id === id ? { ...t, completed } : t))
+      )
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['tasks'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
   })
@@ -184,7 +234,20 @@ export function TasksPage() {
       })
       if (!response.ok) throw new Error('Could not delete task')
     },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      const previous = queryClient.getQueryData(['tasks'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['tasks'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).filter((t: any) => t.id !== id)
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['tasks'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
   })

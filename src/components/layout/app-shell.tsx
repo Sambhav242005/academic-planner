@@ -13,16 +13,32 @@ import {
   BookOpen,
   BarChart3,
   Clock,
-  GraduationCap,
   LogOut,
 } from 'lucide-react'
+import { AttendanceTrackerIcon } from '@/components/shared/attendance-tracker-icon'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
+import { OfflineBanner } from '@/components/shared/offline-banner'
 import { motion } from 'motion/react'
 import { signOut } from 'next-auth/react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import * as React from 'react'
+
+function subscribeToMediaQuery(query: string, callback: () => void) {
+  const mq = window.matchMedia(query)
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function useMediaQuery(query: string) {
+  return React.useSyncExternalStore(
+    (cb) => subscribeToMediaQuery(query, cb),
+    () => window.matchMedia(query).matches,
+    () => false,
+  )
+}
 
 const sidebarLinks = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -37,16 +53,22 @@ const sidebarLinks = [
 
 const SIDEBAR_WIDTH = 224
 
+function subscribeToReducedMotion(callback: () => void) {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function getReducedMotionServerSnapshot() {
+  return false
+}
+
 function useReducedMotion() {
-  const [reduced, setReduced] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return reduced
+  return React.useSyncExternalStore(subscribeToReducedMotion, getReducedMotionSnapshot, getReducedMotionServerSnapshot)
 }
 
 export function AppShell({
@@ -58,28 +80,19 @@ export function AppShell({
 }) {
   const pathname = usePathname()
   const reduced = useReducedMotion()
-  const [isDesktop, setIsDesktop] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(false)
 
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)')
-    setIsDesktop(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   return (
     <div className="min-h-dvh">
       {isDesktop && (
         <aside
-          className="fixed inset-y-0 left-0 z-30 flex flex-col border-r bg-card/95"
+          className="fixed inset-y-0 left-0 z-30 flex flex-col border-r bg-card/95 card-shadow"
           style={{ width: SIDEBAR_WIDTH, minWidth: SIDEBAR_WIDTH }}
         >
           <div className="flex h-14 items-center gap-2.5 border-b border-border px-4">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-none">
-              <GraduationCap className="h-4 w-4" />
-            </div>
+            <AttendanceTrackerIcon size={28} />
             <span className="text-sm font-semibold tracking-tight">Academic Planner</span>
           </div>
           <ScrollArea className="flex-1 px-3 py-3">
@@ -97,19 +110,18 @@ export function AppShell({
                     <Link href={link.href}>
                       <div
                         className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-150',
+                          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                           active
-                            ? 'bg-primary/10 text-primary font-medium'
+                            ? 'bg-primary/10 text-primary font-medium shadow-[inset_3px_0_0_0_var(--primary)]'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                         )}
                         aria-current={active ? 'page' : undefined}
-                        style={active ? { borderLeft: '3px solid var(--primary)' } : undefined}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         {link.label}
                       </div>
                     </Link>
-                  </motion.div>
+                </motion.div>
                 )
               })}
             </nav>
@@ -134,10 +146,10 @@ export function AppShell({
         style={{ marginLeft: isDesktop ? SIDEBAR_WIDTH : 0 }}
       >
         {isDesktop && (
-          <header className="flex h-14 items-center justify-between border-b bg-background/95 px-6 sticky top-0 z-40">
+          <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-6 sticky top-0 z-40">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Home className="h-4 w-4" />
-              <span>Dashboard Workspace</span>
+              <span>{sidebarLinks.find((l) => l.href === pathname)?.label ?? 'Dashboard'}</span>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -157,12 +169,15 @@ export function AppShell({
         {!isDesktop && (
           <header className="flex h-14 items-center justify-between border-b bg-background/95 px-4 sticky top-0 z-40">
             <Link href="/" className="flex items-center gap-2 font-semibold text-sm">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-none">
-                <GraduationCap className="h-4 w-4" />
-              </div>
+              <AttendanceTrackerIcon size={24} />
               <span>Academic Planner</span>
             </Link>
             <div className="flex items-center gap-1">
+              <Link href="/settings" aria-label="Settings">
+                <Button variant="ghost" size="icon-sm">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon-sm"
@@ -172,7 +187,6 @@ export function AppShell({
                 <LogOut className="h-4 w-4" />
               </Button>
               <ThemeToggle />
-              <MobileNav pathname={pathname} />
             </div>
           </header>
         )}
@@ -185,6 +199,7 @@ export function AppShell({
           transition={{ duration: reduced ? 0 : 0.25, ease: 'easeOut' }}
           className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8"
         >
+          <OfflineBanner />
           {children}
         </motion.main>
 
@@ -195,7 +210,7 @@ export function AppShell({
         )}
 
         {!isDesktop && (
-          <nav className="flex items-center justify-around border-t bg-background/95 py-1 pb-safe sticky bottom-0 z-40">
+          <nav className="flex items-center justify-around border-t bg-background/95 py-1 pb-[env(safe-area-inset-bottom)] sticky bottom-0 z-40">
             {sidebarLinks.slice(0, 6).map((link) => {
               const Icon = link.icon
               const active = pathname === link.href
@@ -235,43 +250,3 @@ export function AppShell({
   )
 }
 
-function MobileNav({ pathname }: { pathname: string }) {
-  const current = sidebarLinks.find((l) => l.href === pathname)
-  return (
-    <details className="relative">
-      <summary
-        className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-md hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Navigation menu"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            ;(e.currentTarget as HTMLDetailsElement).open = !(e.currentTarget as HTMLDetailsElement).open
-          }
-        }}
-      >
-        <span className="text-sm font-medium">{current?.label ?? 'Nav'}</span>
-      </summary>
-      <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl border bg-card p-1.5 shadow-lg">
-        {sidebarLinks.map((link) => {
-          const Icon = link.icon
-          const active = pathname === link.href
-          return (
-            <Link key={link.href} href={link.href}>
-              <div
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors my-0.5",
-                  active
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {link.label}
-              </div>
-            </Link>
-          )
-        })}
-      </div>
-    </details>
-  )
-}

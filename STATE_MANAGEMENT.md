@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-The app uses a **two-layer state model**: Zustand for UI state (client-only, ephemeral + persisted preferences), TanStack Query for server state (Supabase data).
+The app uses a **two-layer state model**: Zustand for UI state (client-only, ephemeral + persisted preferences), TanStack Query for server state (Supabase data) with localStorage persistence and optimistic updates.
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -17,8 +17,10 @@ The app uses a **two-layer state model**: Zustand for UI state (client-only, eph
 ┌────────────────────────────────────────────────────┐
 │                 TanStack Query                      │
 │  (Server state — all Supabase data)                 │
+│  + Optimistic updates for all mutations             │
+│  + localStorage persistence (offline support)       │
 │                                                     │
-│  QueryClient                                        │
+│  PersistQueryClientProvider                         │
 │  ├── ['subjects']            → Subject[]            │
 │  ├── ['today-classes', ...]  → Today's classes      │
 │  ├── ['dashboard-stats']     → Aggregated stats     │
@@ -98,27 +100,48 @@ const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
 ### Provider Setup
 
-Located in `src/app/providers.tsx`. The `QueryClientProvider` wraps the entire app:
+Located in `src/app/providers.tsx`. The `PersistQueryClientProvider` wraps the entire app with localStorage persistence:
 
 ```typescript
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import { QueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useState } from 'react'
+import { SessionProvider } from 'next-auth/react'
+import { useState, useMemo } from 'react'
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient())
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        gcTime: 1000 * 60 * 60 * 24, // 24 hours
+        staleTime: 30_000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }), [])
+
+  const persister = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    return createSyncStoragePersister({ storage: window.localStorage })
+  }, [])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <SessionProvider>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: persister as any }}
+      >
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </ThemeProvider>
+      </PersistQueryClientProvider>
+    </SessionProvider>
   )
 }
 ```
@@ -143,7 +166,7 @@ const { data, isLoading, error } = useQuery({
 })
 ```
 
-#### useMutation Pattern
+#### useMutation Pattern (with optimistic updates)
 
 ```typescript
 const queryClient = useQueryClient()
@@ -157,7 +180,17 @@ const createMutation = useMutation({
     })
     if (error) throw error
   },
-  onSuccess: () => {
+  onMutate: async (values) => {
+    await queryClient.cancelQueries({ queryKey: ['subjects'] })
+    const previous = queryClient.getQueryData(['subjects'])
+    const newSubject = { id: `temp-${Date.now()}`, name: values.name, color: values.color }
+    queryClient.setQueryData(['subjects'], (old: any[]) => [...(old ?? []), newSubject])
+    return { previous }
+  },
+  onError: (_err, _values, context) => {
+    if (context?.previous) queryClient.setQueryData(['subjects'], context.previous)
+  },
+  onSettled: () => {
     queryClient.invalidateQueries({ queryKey: ['subjects'] })
   },
 })
@@ -175,7 +208,7 @@ const createMutation = useMutation({
 
 ### Cache Invalidation Strategy
 
-After every mutation, the relevant query key is invalidated to trigger a refetch:
+After every mutation, the relevant query key is invalidated to trigger a refetch. All mutations also use **optimistic updates** for instant UI feedback — the local cache is updated before the server responds, and rolled back on error.
 
 ```typescript
 // After creating/updating/deleting a subject
@@ -187,7 +220,15 @@ queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
 queryClient.invalidateQueries({ queryKey: ['attendance-records'] })
 ```
 
-No optimistic updates are currently used. The cache invalidation + refetch pattern ensures data consistency with minimal complexity.
+### Optimistic Updates + Offline Queue
+
+Every mutation follows this pattern:
+
+1. **onMutate:** Cancel outgoing refetches, snapshot previous cache, apply optimistic update
+2. **onError:** Rollback to snapshot if server rejects the change
+3. **onSettled:** Invalidate queries to refetch fresh data from server
+
+The `PersistQueryClientProvider` with `createSyncStoragePersister` persists the query cache to `localStorage`. When the browser goes offline, mutations queue in the mutation cache and flush automatically when reconnection is detected. An amber banner displays the offline/syncing state.
 
 ### Supabase Clients
 
@@ -226,10 +267,12 @@ Client component (page.tsx)
 User clicks "Add Subject" → opens Dialog
 User fills form → clicks Save
 useMutation fires:
-  1. mutationFn: supabase.from('subjects').insert(...)
-  2. onSuccess: queryClient.invalidateQueries(['subjects'])
+  1. onMutate: cancel refetches, snapshot cache, apply optimistic update
+  2. UI updates instantly with temp item
+  3. mutationFn: supabase.from('subjects').insert(...)
+  4. onSettled: invalidate queries → refetch from server
 Dialog closes
-TanStack Query refetches subjects → UI updates automatically
+TanStack Query refetches subjects → UI shows real data
 ```
 
 ### Calendar Navigation
@@ -249,11 +292,12 @@ TanStack Query queries for new month's data (if different query key dependencies
 |---------|------|----------|------------|
 | Calendar view state | Zustand | `src/stores/app-store.ts` | No (resets on refresh) |
 | Sidebar open/closed | Zustand | `src/stores/app-store.ts` | No |
-| Subject data | TanStack Query | Feature components | Supabase |
-| Timetable data | TanStack Query | Feature components | Supabase |
-| Attendance data | TanStack Query | Feature components | Supabase |
-| Task data | TanStack Query | Feature components | Supabase |
-| Profile/settings | TanStack Query | Feature components | Supabase |
+| Subject data | TanStack Query | Feature components | Supabase + localStorage cache |
+| Timetable data | TanStack Query | Feature components | Supabase + localStorage cache |
+| Attendance data | TanStack Query | Feature components | Supabase + localStorage cache |
+| Task data | TanStack Query | Feature components | Supabase + localStorage cache |
+| Profile/settings | TanStack Query | Feature components | Supabase + localStorage cache |
+| Offline mutations | TanStack Query mutationCache | `providers.tsx` | Queued until online |
 | Form input | Local useState | Feature components | No |
 | Theme preference | next-themes | `src/app/providers.tsx` | localStorage |
 

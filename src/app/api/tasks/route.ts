@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireOwnedOptionalReference, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireOwnedOptionalReference, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const priority = z.enum(['low', 'medium', 'high'])
 const taskInput = z.object({
@@ -16,7 +17,9 @@ const deleteInput = z.object({ id: z.string().uuid() })
 
 export async function GET() {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'tasks', undefined, isDemo)
+    if (demo) return demo
     const { data, error } = await createAdminClient()
       .from('tasks')
       .select('*, subject:subjects(*)')
@@ -31,7 +34,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'tasks', request, isDemo)
+    if (demo) return demo
     const input = taskInput.parse(await request.json())
     await requireOwnedOptionalReference('subjects', input.subjectId, userId)
     const { data, error } = await createAdminClient()
@@ -56,7 +61,9 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'PATCH', 'tasks', request, isDemo)
+    if (demo) return demo
     const body = await request.json()
     const completion = completionInput.safeParse(body)
     if (completion.success && Object.keys(body).length === 2) {
@@ -97,7 +104,9 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'DELETE', 'tasks', request, isDemo)
+    if (demo) return demo
     const { id } = deleteInput.parse(await request.json())
     const { data, error } = await createAdminClient()
       .from('tasks')

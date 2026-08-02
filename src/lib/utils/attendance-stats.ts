@@ -1,4 +1,4 @@
-import type { AttendanceRecord, AttendanceStatus, AttendanceStats } from '@/types'
+import type { AttendanceRecord, AttendanceStats } from '@/types'
 
 export function calculateStats(records: Pick<AttendanceRecord, 'status'>[]): AttendanceStats {
   const total = records.length

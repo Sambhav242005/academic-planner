@@ -7,9 +7,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CalendarDays, AlertCircle, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { CalendarDays, AlertCircle, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-react'
 import { getLocalDateKey } from '@/lib/utils/dates'
+import { AttendanceActions } from '@/components/shared/attendance-actions'
 
 const CLASS_TYPE_LABELS: Record<ClassType, string> = {
   theory: 'Theory',
@@ -19,17 +19,7 @@ const CLASS_TYPE_LABELS: Record<ClassType, string> = {
   exam: 'Exam',
 }
 
-const ATTENDANCE_ACTIONS: {
-  status: AttendanceStatus
-  symbol: string
-  label: string
-  className: string
-}[] = [
-  { status: 'present', symbol: '●', label: 'Present', className: 'text-green-500' },
-  { status: 'absent', symbol: '○', label: 'Absent', className: 'text-red-500' },
-  { status: 'cancelled', symbol: '—', label: 'Cancelled', className: 'text-amber-500' },
-  { status: 'holiday', symbol: '✕', label: 'Holiday', className: 'text-sky-500' },
-]
+
 
 function mapSubject(row: Record<string, unknown>): Subject {
   return {
@@ -88,6 +78,46 @@ export function AttendancePage() {
   })
   const instances = attendanceData
 
+  const handleAutoGenerate = () => {
+    if (!isLoading && instances && instances.length === 0) {
+      autoGenerateMutation.mutate(selectedDate)
+    }
+  }
+
+  const generateInstancesMutation = useMutation({
+    mutationFn: async ({ startDate, endDate }: { startDate?: string; endDate?: string }) => {
+      const response = await fetch('/api/attendance/generate-instances', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate, endDate }),
+      })
+      if (!response.ok) throw new Error('Could not generate instances')
+      return response.json() as Promise<{ instancesGenerated: number; absentDefaulted: number }>
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['class-instances'] })
+    },
+  })
+
+  const autoGenerateMutation = useMutation({
+    mutationFn: async (date: string) => {
+      const response = await fetch('/api/attendance/generate-instances', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: date, endDate: date }),
+      })
+      if (!response.ok) throw new Error('Could not generate instances')
+      return response.json() as Promise<{ instancesGenerated: number; absentDefaulted: number }>
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['class-instances', selectedDate] })
+    },
+  })
+
+  const handleGeneratePast = () => {
+    generateInstancesMutation.mutate({})
+  }
+
   const upsertMutation = useMutation({
     mutationFn: async ({
       classInstanceId,
@@ -103,20 +133,38 @@ export function AttendancePage() {
       })
       if (!response.ok) throw new Error('Could not save attendance')
     },
-    onSuccess: () => {
+    onMutate: async ({ classInstanceId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['class-instances', selectedDate] })
+      const previous = queryClient.getQueryData(['class-instances', selectedDate])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['class-instances', selectedDate], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((ci: any) =>
+          ci.id === classInstanceId
+            ? { ...ci, attendance: [{ ...ci.attendance?.[0], status, id: ci.attendance?.[0]?.id ?? `temp-${Date.now()}` }] }
+            : ci
+        )
+      )
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['class-instances', selectedDate], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['class-instances', selectedDate] })
-      queryClient.invalidateQueries({ queryKey: ['today-classes'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] })
     },
   })
 
+  const [pendingStatus, setPendingStatus] = useState<{ instanceId: string; status: AttendanceStatus } | null>(null)
+
   function handleStatusClick(instance: ClassInstance, status: AttendanceStatus) {
     if (instance.attendance?.status === status) return
-    if (!window.confirm(`Set ${instance.subject?.name ?? 'this class'} as ${status}?`)) return
-    upsertMutation.mutate({
-      classInstanceId: instance.id,
-      status,
-    })
+    setPendingStatus({ instanceId: instance.id, status })
+    upsertMutation.mutate(
+      { classInstanceId: instance.id, status },
+      { onSettled: () => setPendingStatus(null) }
+    )
   }
 
   function formatTime(time: string | null): string {
@@ -140,28 +188,48 @@ export function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Attendance</h1>
           <p className="text-sm text-muted-foreground mt-1">Mark attendance for your classes</p>
         </div>
 
-        <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-          <Button variant="ghost" size="icon-sm" onClick={() => shiftDate(-1)} aria-label="Previous day">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="relative">
-            <Input
-              id="attendance-date"
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-[140px] h-8 bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 font-medium"
-            />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGeneratePast}
+              disabled={generateInstancesMutation.isPending}
+              aria-label="Generate past class instances"
+              className="gap-1.5"
+            >
+              <Zap className="h-3.5 w-3.5" />
+              {generateInstancesMutation.isPending ? 'Generating…' : 'Catch up'}
+            </Button>
+            {generateInstancesMutation.isSuccess && (
+              <span className="text-xs text-green-600 dark:text-green-400 whitespace-nowrap">
+                Generated {generateInstancesMutation.data.instancesGenerated} classes
+              </span>
+            )}
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={() => shiftDate(1)} aria-label="Next day">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
+            <Button variant="ghost" size="icon-sm" onClick={() => shiftDate(-1)} aria-label="Previous day">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="relative">
+              <Input
+                id="attendance-date"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-[140px] h-8 bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 font-medium"
+              />
+            </div>
+            <Button variant="ghost" size="icon-sm" onClick={() => shiftDate(1)} aria-label="Next day">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -207,28 +275,12 @@ export function AttendancePage() {
                     <span>{CLASS_TYPE_LABELS[instance.classType]}</span>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-0.5" role="group" aria-label={`Set attendance for ${instance.subject?.name ?? 'class'}`}>
-                  {ATTENDANCE_ACTIONS.map((action) => (
-                    <Button
-                      key={action.status}
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      className={cn(
-                        'h-7 w-7 rounded-md text-sm leading-none opacity-70 hover:opacity-100',
-                        action.className,
-                        currentStatus === action.status && 'bg-muted opacity-100 ring-1 ring-current'
-                      )}
-                      onClick={() => handleStatusClick(instance, action.status)}
-                      disabled={isPending}
-                      aria-label={`Mark ${action.label}`}
-                      aria-pressed={currentStatus === action.status}
-                      title={action.label}
-                    >
-                      {action.symbol}
-                    </Button>
-                  ))}
-                </div>
+                <AttendanceActions
+                  currentStatus={currentStatus}
+                  onChange={(status) => handleStatusClick(instance, status)}
+                  disabled={isPending}
+                  pendingStatus={pendingStatus?.instanceId === instance.id ? pendingStatus.status : null}
+                />
               </div>
             )
           })}
@@ -245,9 +297,15 @@ export function AttendancePage() {
                 You don&apos;t have any classes scheduled for {displayDate}.
               </p>
             </div>
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" size="sm" onClick={() => shiftDate(-1)}>Previous Day</Button>
-              <Button variant="outline" size="sm" onClick={() => shiftDate(1)}>Next Day</Button>
+            <div className="flex flex-col sm:flex-row gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={handleAutoGenerate} disabled={autoGenerateMutation.isPending}>
+                <Zap className="h-3.5 w-3.5 mr-1" />
+                {autoGenerateMutation.isPending ? 'Generating…' : 'Generate classes'}
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => shiftDate(-1)}>Previous Day</Button>
+                <Button variant="outline" size="sm" onClick={() => shiftDate(1)}>Next Day</Button>
+              </div>
             </div>
           </CardContent>
         </Card>

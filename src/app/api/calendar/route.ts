@@ -1,12 +1,15 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const date = z.string().date()
 
 export async function GET(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'calendar', request, isDemo)
+    if (demo) return demo
     const params = new URL(request.url).searchParams
     const start = date.parse(params.get('start'))
     const end = date.parse(params.get('end'))

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Subject } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -67,8 +67,20 @@ export function SubjectsPage() {
         body: JSON.stringify(values),
       })
       if (!response.ok) throw new Error('Could not create subject')
+      return response.json() as Promise<{ id: string }>
     },
-    onSuccess: () => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: ['subjects'] })
+      const previous = queryClient.getQueryData(['subjects'])
+      const newSubject = { id: `temp-${Date.now()}`, name: values.name, color: values.color }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['subjects'], (old: any[]) => [...(old ?? []), newSubject])
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['subjects'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] })
       setOpen(false)
     },
@@ -83,7 +95,20 @@ export function SubjectsPage() {
       })
       if (!response.ok) throw new Error('Could not update subject')
     },
-    onSuccess: () => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: ['subjects'] })
+      const previous = queryClient.getQueryData(['subjects'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['subjects'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((s: any) => (s.id === values.id ? { ...s, name: values.name, color: values.color } : s))
+      )
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['subjects'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] })
       setOpen(false)
     },
@@ -98,7 +123,20 @@ export function SubjectsPage() {
       })
       if (!response.ok) throw new Error('Could not delete subject')
     },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['subjects'] })
+      const previous = queryClient.getQueryData(['subjects'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['subjects'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).filter((s: any) => s.id !== id)
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['subjects'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] })
     },
   })
@@ -194,7 +232,7 @@ export function SubjectsPage() {
                   <p className="truncate text-base font-semibold">{subject.name}</p>
                   <p className="text-xs text-muted-foreground font-mono mt-0.5">{subject.color.toUpperCase()}</p>
                 </div>
-                <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                <div className="flex shrink-0 gap-1 md:opacity-0 md:transition-opacity md:group-hover:opacity-100 focus-within:opacity-100">
                   <Button
                     variant="ghost"
                     size="icon-sm"

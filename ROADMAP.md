@@ -77,12 +77,12 @@ The prototype was a throwaway reference implementation. The full app is a comple
 
 **Status:** ✅ Complete
 
-Complete rewrite of the prototype as a modern full-stack application with Next.js 14 App Router, TypeScript, Tailwind CSS v4, shadcn/ui, Zustand, TanStack Query, and Supabase.
+Complete rewrite of the prototype as a modern full-stack application with Next.js 16 App Router, TypeScript, Tailwind CSS v4, shadcn/ui, Zustand, TanStack Query, and Supabase.
 
 ### Scope
 
 #### 2.1 Project Scaffolding
-- [x] Initialize Next.js 14+ project with App Router
+- [x] Initialize Next.js 16+ project with App Router
 - [x] Configure TypeScript (strict mode)
 - [x] Set up Tailwind CSS v4 with PostCSS
 - [x] Install and configure shadcn/ui (24 primitives)
@@ -183,7 +183,7 @@ Complete rewrite of the prototype as a modern full-stack application with Next.j
 ### Tech Stack (Current)
 
 ```
-Frontend:  Next.js 14 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui
+Frontend:  Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui
 State:     Zustand (UI state) + TanStack Query (server state)
 Backend:   Supabase (Postgres, Auth via NextAuth adapter)
 Auth:      NextAuth.js v5 with Supabase adapter, Magic Link via Resend

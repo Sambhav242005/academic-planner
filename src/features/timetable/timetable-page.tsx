@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import * as React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { checkCollision } from '@/lib/utils/time'
 import type { Subject, RecurringClass, ClassType, Semester } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,6 +27,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { Plus, Pencil, Trash2, Clock, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
 
@@ -54,6 +56,8 @@ function mapSemester(row: Record<string, unknown>): Semester {
     userId: row.user_id as string,
     label: row.label as string,
     isActive: (row.is_active ?? row.isActive) as boolean,
+    startDate: (row.start_date as string) ?? null,
+    endDate: (row.end_date as string) ?? null,
     createdAt: (row.created_at ?? row.createdAt) as string,
   }
 }
@@ -76,6 +80,81 @@ function mapRecurringClass(row: Record<string, unknown>): RecurringClass {
   }
 }
 
+function ClassCard({
+  cls,
+  onEdit,
+  onDelete,
+  showActions,
+}: {
+  cls: RecurringClass
+  onEdit: () => void
+  onDelete: () => void
+  showActions: boolean
+}) {
+  const subjectColor = cls.subject?.color ?? '#888'
+  return (
+    <div
+      className="group relative rounded-xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/30"
+      style={{ borderLeftWidth: 4, borderLeftColor: subjectColor }}
+    >
+      <div className="mb-2 flex items-start justify-between gap-1">
+        <p className="truncate text-sm font-semibold leading-tight">
+          {cls.subject?.name ?? 'Unknown'}
+        </p>
+        <div className={cn(
+          "flex shrink-0 gap-0.5 transition-opacity -mt-1 -mr-1",
+          showActions ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+        )}>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={onEdit}
+            aria-label="Edit class"
+            title="Edit class"
+            className="h-6 w-6 hover:bg-muted"
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={onDelete}
+            aria-label="Delete class"
+            title="Delete class"
+            className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="h-3 w-3 text-destructive" />
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium bg-muted/30 w-fit px-1.5 py-0.5 rounded-sm">
+        <Clock className="h-3 w-3 shrink-0" />
+        <span>
+          {cls.startTime.slice(0, 5)}
+          {cls.endTime ? ` - ${cls.endTime.slice(0, 5)}` : ''}
+        </span>
+      </div>
+      <Badge variant="outline" className="mt-2.5 text-[10px] font-medium bg-background">
+        {CLASS_TYPE_LABELS[cls.classType]}
+      </Badge>
+    </div>
+  )
+}
+
+function subscribeToMediaQuery(query: string, callback: () => void) {
+  const mq = window.matchMedia(query)
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function useMediaQuery(query: string) {
+  return React.useSyncExternalStore(
+    (cb) => subscribeToMediaQuery(query, cb),
+    () => window.matchMedia(query).matches,
+    () => true,
+  )
+}
+
 export function TimetablePage() {
   const queryClient = useQueryClient()
 
@@ -87,6 +166,11 @@ export function TimetablePage() {
   const [subjectId, setSubjectId] = useState('')
   const [classType, setClassType] = useState<ClassType>('theory')
   const [error, setError] = useState<string | null>(null)
+
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const currentDayIndex = new Date().getDay()
+  const adjustedCurrentDayIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1
+  const [selectedDay, setSelectedDay] = useState(adjustedCurrentDayIndex)
 
   const { data: activeSemester } = useQuery({
     queryKey: ['active-semester'],
@@ -108,6 +192,7 @@ export function TimetablePage() {
       if (!response.ok) throw new Error('Could not load subjects')
       return ((await response.json()) as Record<string, unknown>[]).map(mapSubject)
     },
+    staleTime: 5 * 60 * 1000,
   })
 
   const { data: classes, isLoading, isError } = useQuery({
@@ -118,6 +203,7 @@ export function TimetablePage() {
       if (!response.ok) throw new Error('Could not load timetable')
       return ((await response.json()) as Record<string, unknown>[]).map(mapRecurringClass)
     },
+    staleTime: 5 * 60 * 1000,
   })
 
   const createMutation = useMutation({
@@ -134,8 +220,33 @@ export function TimetablePage() {
         body: JSON.stringify({ ...values, semesterId: activeSemester?.id ?? null }),
       })
       if (!response.ok) throw new Error('Could not create class')
+      return response.json() as Promise<{ id: string }>
     },
-    onSuccess: () => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring-classes'] })
+      const previous = queryClient.getQueryData(['recurring-classes'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subjects = queryClient.getQueryData(['subjects']) as any[] | undefined
+      const subject = subjects?.find((s) => s.id === values.subjectId)
+      const newClass = {
+        id: `temp-${Date.now()}`,
+        dayOfWeek: values.dayOfWeek,
+        startTime: values.startTime,
+        endTime: values.endTime,
+        subjectId: values.subjectId,
+        classType: values.classType,
+        semesterId: activeSemester?.id ?? null,
+        subjectName: subject?.name ?? 'Unknown',
+        subjectColor: subject?.color ?? '#888',
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['recurring-classes'], (old: any[]) => [...(old ?? []), newClass])
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['recurring-classes'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-classes'] })
       setOpen(false)
     },
@@ -157,7 +268,24 @@ export function TimetablePage() {
       })
       if (!response.ok) throw new Error('Could not update class')
     },
-    onSuccess: () => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring-classes'] })
+      const previous = queryClient.getQueryData(['recurring-classes'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['recurring-classes'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).map((c: any) =>
+          c.id === values.id
+            ? { ...c, dayOfWeek: values.dayOfWeek, startTime: values.startTime, endTime: values.endTime, subjectId: values.subjectId, classType: values.classType }
+            : c
+        )
+      )
+      return { previous }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previous) queryClient.setQueryData(['recurring-classes'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-classes'] })
       setOpen(false)
     },
@@ -172,7 +300,20 @@ export function TimetablePage() {
       })
       if (!response.ok) throw new Error('Could not delete class')
     },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring-classes'] })
+      const previous = queryClient.getQueryData(['recurring-classes'])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['recurring-classes'], (old: any[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old ?? []).filter((c: any) => c.id !== id)
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['recurring-classes'], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-classes'] })
     },
   })
@@ -183,7 +324,7 @@ export function TimetablePage() {
 
   function openAdd() {
     setEditingId(null)
-    setDayOfWeek('0')
+    setDayOfWeek(String(selectedDay))
     setStartTime('08:00')
     setEndTime('09:00')
     setSubjectId(subjects?.[0]?.id ?? '')
@@ -240,14 +381,7 @@ export function TimetablePage() {
     }
   }
 
-  function timeDisplay(time: string | null): string {
-    if (!time) return ''
-    return time.slice(0, 5)
-  }
-
   const isPending = createMutation.isPending || updateMutation.isPending
-  const currentDayIndex = new Date().getDay()
-  const adjustedCurrentDayIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1
 
   return (
     <div className="space-y-6">
@@ -271,17 +405,58 @@ export function TimetablePage() {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="grid min-h-[400px] grid-cols-7 gap-4 overflow-x-auto">
-          {DAY_LABELS.map((day, i) => (
-            <div key={i} className="flex flex-col gap-3 min-w-[140px]">
-              <Skeleton className="h-8 w-full rounded-md" />
-              {Array.from({ length: 3 }).map((_, j) => (
-                <Skeleton key={j} className="h-[92px] w-full rounded-xl" />
-              ))}
-            </div>
-          ))}
+      {!isDesktop && !isLoading && classes && classes.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+          {DAY_LABELS.map((day, dayIndex) => {
+            const isToday = dayIndex === adjustedCurrentDayIndex
+            const isSelected = dayIndex === selectedDay
+            const classCount = classesByDay[dayIndex].length
+            return (
+              <button
+                key={dayIndex}
+                onClick={() => setSelectedDay(dayIndex)}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 min-w-[44px] rounded-lg px-2.5 py-2 text-xs font-medium transition-all shrink-0",
+                  isSelected
+                    ? "bg-green-500 text-white shadow-sm"
+                    : isToday
+                      ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                )}
+                aria-label={`${day}${classCount > 0 ? `, ${classCount} classes` : ''}`}
+              >
+                <span>{day}</span>
+                {classCount > 0 && (
+                  <span className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    isSelected ? "bg-white/60" : "bg-green-500/40"
+                  )} />
+                )}
+              </button>
+            )
+          })}
         </div>
+      )}
+
+      {isLoading ? (
+        isDesktop ? (
+          <div className="grid min-h-[400px] grid-cols-7 gap-4 overflow-x-auto">
+            {DAY_LABELS.map((day, i) => (
+              <div key={i} className="flex flex-col gap-3 min-w-[140px]">
+                <Skeleton className="h-8 w-full rounded-md" />
+                {Array.from({ length: 3 }).map((_, j) => (
+                  <Skeleton key={j} className="h-[92px] w-full rounded-xl" />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, j) => (
+              <Skeleton key={j} className="h-[92px] w-full rounded-xl" />
+            ))}
+          </div>
+        )
       ) : isError ? (
         <Card className="border-destructive/20 bg-destructive/5">
           <CardContent className="flex flex-col items-center justify-center py-10 text-center">
@@ -294,74 +469,59 @@ export function TimetablePage() {
           </CardContent>
         </Card>
       ) : classes && classes.length > 0 ? (
-        <div className="grid min-h-[400px] grid-cols-7 gap-4 overflow-x-auto pb-4 px-1">
-          {DAY_LABELS.map((day, dayIndex) => {
-            const isToday = dayIndex === adjustedCurrentDayIndex
-            return (
-            <div key={dayIndex} className="flex min-w-[150px] flex-col gap-3">
-              <div className="sticky top-0 z-10 bg-background/95 backdrop-blur py-2">
-                <div className={`px-3 py-1.5 rounded-md text-center text-sm font-semibold transition-colors ${isToday ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'}`}>
-                  {day}
+        isDesktop ? (
+          <div className="grid min-h-[400px] grid-cols-7 gap-4 overflow-x-auto pb-4 px-1">
+            {DAY_LABELS.map((day, dayIndex) => {
+              const isToday = dayIndex === adjustedCurrentDayIndex
+              return (
+              <div key={dayIndex} className="flex min-w-[150px] flex-col gap-3">
+                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur py-2">
+                  <div className={cn(
+                    "px-3 py-1.5 rounded-md text-center text-sm font-semibold transition-colors",
+                    isToday ? 'bg-green-500 text-white' : 'bg-muted/50 text-muted-foreground'
+                  )}>
+                    {day}
+                  </div>
                 </div>
-              </div>
-              {classesByDay[dayIndex].length > 0 ? (
-                classesByDay[dayIndex].map((cls) => {
-                  const subjectColor = cls.subject?.color ?? '#888'
-                  return (
-                    <div
+                {classesByDay[dayIndex].length > 0 ? (
+                  classesByDay[dayIndex].map((cls) => (
+                    <ClassCard
                       key={cls.id}
-                      className="group relative rounded-xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/30"
-                      style={{ borderTopWidth: 4, borderTopColor: subjectColor }}
-                    >
-                      <div className="mb-2 flex items-start justify-between gap-1">
-                        <p className="truncate text-sm font-semibold leading-tight">
-                          {cls.subject?.name ?? 'Unknown'}
-                        </p>
-                        <div className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 -mt-1 -mr-1">
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => openEdit(cls)}
-                            aria-label={`Edit class`}
-                            title={`Edit class`}
-                            className="h-6 w-6 hover:bg-muted"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => handleDelete(cls.id)}
-                            aria-label={`Delete class`}
-                            title={`Delete class`}
-                            className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium bg-muted/30 w-fit px-1.5 py-0.5 rounded-sm">
-                        <Clock className="h-3 w-3 shrink-0" />
-                        <span>
-                          {timeDisplay(cls.startTime)}
-                          {cls.endTime ? ` - ${timeDisplay(cls.endTime)}` : ''}
-                        </span>
-                      </div>
-                      <Badge variant="outline" className="mt-2.5 text-[10px] font-medium bg-background">
-                        {CLASS_TYPE_LABELS[cls.classType]}
-                      </Badge>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed bg-muted/10">
-                  <p className="px-2 py-8 text-xs text-muted-foreground/60 font-medium">Free day</p>
-                </div>
-              )}
-            </div>
-            )
-          })}
-        </div>
+                      cls={cls}
+                      onEdit={() => openEdit(cls)}
+                      onDelete={() => handleDelete(cls.id)}
+                      showActions={false}
+                    />
+                  ))
+                ) : (
+                  <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed bg-muted/10">
+                    <p className="px-2 py-8 text-xs text-muted-foreground/60 font-medium">Free day</p>
+                  </div>
+                )}
+              </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="space-y-3 min-h-[200px]">
+            {classesByDay[selectedDay].length > 0 ? (
+              classesByDay[selectedDay].map((cls) => (
+                <ClassCard
+                  key={cls.id}
+                  cls={cls}
+                  onEdit={() => openEdit(cls)}
+                  onDelete={() => handleDelete(cls.id)}
+                  showActions={true}
+                />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-muted/10 py-12">
+                <p className="text-sm text-muted-foreground/60 font-medium">Free day</p>
+                <p className="text-xs text-muted-foreground/40 mt-1">No classes on {DAY_LABELS[selectedDay]}</p>
+              </div>
+            )}
+          </div>
+        )
       ) : (
         <Card className="border border-dashed bg-card">
           <CardContent className="flex flex-col items-center gap-4 py-16">

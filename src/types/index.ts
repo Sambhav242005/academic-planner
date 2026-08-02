@@ -77,6 +77,8 @@ export interface Semester {
   userId: string
   label: string
   isActive: boolean
+  startDate: string | null
+  endDate: string | null
   createdAt: string
 }
 

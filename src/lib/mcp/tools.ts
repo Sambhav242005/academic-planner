@@ -1,10 +1,17 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isDemoUser } from '@/lib/demo/seed'
+import * as demoStore from '@/lib/demo/store'
+import { ensureDemoInit } from '@/lib/demo/intercept'
 
 export interface McpContext {
   userId: string
 }
 
 export async function listSubjects(ctx: McpContext) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    return { subjects: demoStore.getSubjects() }
+  }
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('subjects')
@@ -17,6 +24,11 @@ export async function createSubject(
   ctx: McpContext,
   params: { name: string; color: string; semester_id: string }
 ) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const subject = demoStore.createSubject({ name: params.name, color: params.color, semesterId: params.semester_id })
+    return { subject }
+  }
   const name = params.name.trim()
   if (!name) throw new Error('Subject name is required')
   const color = params.color.trim()
@@ -70,6 +82,10 @@ export async function createSubject(
 }
 
 export async function listSemesters(ctx: McpContext) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    return { semesters: demoStore.getSemesters() }
+  }
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('semesters')
@@ -83,6 +99,11 @@ export async function createSemester(
   ctx: McpContext,
   params: { label: string; is_active?: boolean }
 ) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const semester = demoStore.createSemester({ label: params.label, isActive: params.is_active })
+    return { semester }
+  }
   const label = params.label.trim()
   if (!label) throw new Error('Semester label is required')
 
@@ -120,6 +141,10 @@ export async function createSemester(
 }
 
 export async function listRecurringClasses(ctx: McpContext) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    return { recurring_classes: demoStore.getRecurringClasses() }
+  }
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('recurring_classes')
@@ -143,6 +168,18 @@ export async function createRecurringClass(
   ctx: McpContext,
   params: { subject_id: string; day_of_week: number; start_time: string; end_time?: string; class_type?: string; semester_id?: string }
 ) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const rc = demoStore.createRecurringClass({
+      subjectId: params.subject_id,
+      dayOfWeek: params.day_of_week,
+      startTime: params.start_time,
+      endTime: params.end_time ?? null,
+      classType: params.class_type ?? 'theory',
+      semesterId: params.semester_id ?? null,
+    })
+    return { recurring_class: rc }
+  }
   const validClassTypes = ['theory', 'clinical', 'practical', 'tutorial', 'exam']
   const classType = validClassTypes.includes(params.class_type ?? '') ? params.class_type! : 'theory'
   if (params.day_of_week < 0 || params.day_of_week > 6) throw new Error('day_of_week must be 0 (Mon) to 6 (Sun)')
@@ -153,6 +190,19 @@ export async function createRecurringClass(
   }
 
   const supabase = createAdminClient()
+
+  // Validate semester_id belongs to user if provided
+  if (params.semester_id) {
+    const { data: semester, error: semError } = await supabase
+      .from('semesters')
+      .select('id')
+      .eq('id', params.semester_id)
+      .eq('user_id', ctx.userId)
+      .maybeSingle()
+    if (semError || !semester) {
+      throw new Error(`Semester not found with id "${params.semester_id}" or does not belong to you.`)
+    }
+  }
 
   // Verify subject belongs to user
   const { data: subject, error: subjectError } = await supabase
@@ -189,6 +239,7 @@ export async function createRecurringClass(
     const existEnd = cls.end_time ? timeToMinutes(cls.end_time) : existStart + 60
     // Overlap if new starts before existing ends AND new ends after existing starts
     if (newStart < existEnd && newEnd > existStart) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clsName = (cls.subject as any)?.name ?? 'Unknown'
       throw new Error(
         `Scheduling conflict: ${clsName} is already at ${cls.start_time}-${cls.end_time ?? '?'} on day ${params.day_of_week}. ` +
@@ -221,6 +272,18 @@ export async function createTask(
   ctx: McpContext,
   params: { title: string; subject_id?: string; due_date?: string; priority?: string; note?: string }
 ) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const task = demoStore.createTask({
+      title: params.title,
+      subjectId: params.subject_id ?? null,
+      dueDate: params.due_date ?? null,
+      priority: params.priority ?? 'medium',
+      note: params.note ?? '',
+      source: 'ai',
+    })
+    return { task }
+  }
   const title = params.title.trim().slice(0, MAX_TITLE)
   if (!title) throw new Error('Title is required')
   const note = (params.note ?? '').trim().slice(0, MAX_NOTE)
@@ -256,6 +319,10 @@ export async function createTask(
 }
 
 export async function listTasks(ctx: McpContext, params?: { completed?: boolean; priority?: string }) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    return { tasks: demoStore.getTasks(params) }
+  }
   const supabase = createAdminClient()
   let query = supabase
     .from('tasks')
@@ -277,6 +344,18 @@ export async function updateTask(
   ctx: McpContext,
   params: { task_id: string; title?: string; completed?: boolean; priority?: string; due_date?: string | null; note?: string }
 ) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const changes: Record<string, unknown> = {}
+    if (params.title !== undefined) changes.title = params.title.trim().slice(0, MAX_TITLE)
+    if (params.completed !== undefined) changes.completed = params.completed
+    if (params.priority !== undefined) changes.priority = params.priority
+    if (params.due_date !== undefined) changes.due_date = params.due_date
+    if (params.note !== undefined) changes.note = params.note.trim().slice(0, MAX_NOTE)
+    const task = demoStore.updateTask(params.task_id, changes)
+    if (!task) throw new Error('Task not found')
+    return { task }
+  }
   const supabase = createAdminClient()
   const updates: Record<string, unknown> = {}
   if (params.title !== undefined) {
@@ -304,6 +383,11 @@ export async function updateTask(
 }
 
 export async function deleteTask(ctx: McpContext, params: { task_id: string }) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    demoStore.deleteTask(params.task_id)
+    return { deleted: true }
+  }
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('tasks')
@@ -315,6 +399,22 @@ export async function deleteTask(ctx: McpContext, params: { task_id: string }) {
 }
 
 export async function getTodayClasses(ctx: McpContext) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const today = new Date().toISOString().split('T')[0]
+    const dayOfWeek = new Date().getDay()
+    const isoDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    const activeSemester = demoStore.getActiveSemester()
+    const recurring = demoStore.getRecurringClasses(activeSemester?.id).filter(rc => rc.dayOfWeek === isoDay)
+    const instances = demoStore.getClassInstances({ date: today })
+    const allRecords = demoStore.getAttendanceRecords()
+    const enriched = instances.map(inst => ({
+      ...inst,
+      subject: demoStore.getSubject(inst.subjectId),
+      attendance: allRecords.find(r => r.classInstanceId === inst.id) ?? null,
+    }))
+    return { classes: [...recurring.map(rc => ({ ...rc, subject: demoStore.getSubject(rc.subjectId) })), ...enriched] }
+  }
   const supabase = createAdminClient()
   const today = new Date().toISOString().split('T')[0]
   const dayOfWeek = new Date().getDay()
@@ -336,6 +436,23 @@ export async function getTodayClasses(ctx: McpContext) {
 }
 
 export async function getAttendanceStats(ctx: McpContext, params?: { subject_id?: string }) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    let classIds: string[] | undefined
+    if (params?.subject_id) {
+      const instances = demoStore.getClassInstances({}).filter(i => i.subjectId === params.subject_id)
+      classIds = instances.map(i => i.id)
+    }
+    const records = demoStore.getAttendanceRecords(classIds)
+    const total = records.length
+    const present = records.filter(r => r.status === 'present').length
+    const absent = records.filter(r => r.status === 'absent').length
+    const cancelled = records.filter(r => r.status === 'cancelled').length
+    const holiday = records.filter(r => r.status === 'holiday').length
+    const effectiveTotal = present + absent
+    const percentage = effectiveTotal > 0 ? Math.round((present / effectiveTotal) * 100) : 0
+    return { total, present, absent, cancelled, holiday, percentage }
+  }
   const supabase = createAdminClient()
   let classIds: string[] | undefined
 
@@ -378,6 +495,29 @@ export async function getAttendanceStats(ctx: McpContext, params?: { subject_id?
 }
 
 export async function listSubjectsWithAttendance(ctx: McpContext) {
+  if (isDemoUser(ctx.userId)) {
+    ensureDemoInit()
+    const subjects = demoStore.getSubjects()
+    const allInstances = demoStore.getClassInstances({})
+    const allRecords = demoStore.getAttendanceRecords()
+    const result = subjects.map(subject => {
+      const subjectInstances = allInstances.filter(i => i.subjectId === subject.id)
+      const classIds = subjectInstances.map(i => i.id)
+      const records = allRecords.filter(r => classIds.includes(r.classInstanceId))
+      const present = records.filter(x => x.status === 'present').length
+      const absent = records.filter(x => x.status === 'absent').length
+      const effectiveTotal = present + absent
+      return {
+        id: subject.id,
+        name: subject.name,
+        color: subject.color,
+        total: records.length,
+        present,
+        percentage: effectiveTotal > 0 ? Math.round((present / effectiveTotal) * 100) : 0,
+      }
+    })
+    return { subjects: result }
+  }
   const supabase = createAdminClient()
   const { data: subjects } = await supabase
     .from('subjects')

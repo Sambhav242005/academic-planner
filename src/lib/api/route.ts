@@ -1,6 +1,9 @@
 import { auth } from '@/lib/auth/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ZodError } from 'zod'
+import { isDemoUser as isDemoUserCheck, DEMO_EMAIL } from '@/lib/demo/seed'
+
+export { isDemoUserCheck as isDemoUser }
 
 export async function requireUserId(): Promise<string> {
   const session = await auth()
@@ -8,6 +11,17 @@ export async function requireUserId(): Promise<string> {
     throw new ApiError('Unauthorized', 401)
   }
   return session.user.id
+}
+
+export async function requireUserIdAndDemo(): Promise<{ userId: string; isDemo: boolean }> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new ApiError('Unauthorized', 401)
+  }
+  return {
+    userId: session.user.id,
+    isDemo: session.user.email === DEMO_EMAIL,
+  }
 }
 
 export class ApiError extends Error {

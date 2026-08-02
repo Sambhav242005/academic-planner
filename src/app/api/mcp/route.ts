@@ -13,11 +13,20 @@ import { z } from 'zod'
 type RateLimitEntry = { count: number; resetAt: number }
 const MCP_RATE_LIMIT = 60
 const MCP_RATE_WINDOW_MS = 60_000
+const MCP_RATE_MAX_KEYS = 10_000
 const mcpRateLimits = new Map<string, RateLimitEntry>()
 function isMcpRateLimited(request: NextRequest): boolean {
   const identifier = request.headers.get('x-api-key') ?? request.headers.get('x-forwarded-for') ?? 'anonymous'
   const key = createHash('sha256').update(identifier).digest('hex')
   const now = Date.now()
+
+  // Evict expired entries if map grows too large (prevents unbounded memory growth)
+  if (mcpRateLimits.size > MCP_RATE_MAX_KEYS) {
+    for (const [k, v] of mcpRateLimits) {
+      if (v.resetAt <= now) mcpRateLimits.delete(k)
+    }
+  }
+
   const current = mcpRateLimits.get(key)
   if (current && current.resetAt > now) {
     if (current.count >= MCP_RATE_LIMIT) return true
@@ -49,6 +58,7 @@ function createServer() {
     version: '1.0.0',
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function userId(extra: RequestHandlerExtra<any, any>): string {
     return extra.authInfo?.extra?.userId as string
   }
@@ -259,7 +269,6 @@ export async function POST(request: NextRequest) {
 
   // Try OAuth Bearer token first (ChatGPT)
   const authHeader = request.headers.get('authorization')
-  console.log('[MCP] Auth header:', authHeader ? `${authHeader.slice(0, 20)}...` : 'none')
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
     userId = await validateOAuthToken(token)
@@ -306,16 +315,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  console.log('[MCP] Request received:', {
-    method: request.method,
-    accept: request.headers.get('accept'),
-    contentType: request.headers.get('content-type'),
-    mcpProtocolVersion: request.headers.get('mcp-protocol-version'),
-    mcpSessionId: request.headers.get('mcp-session-id'),
-    bodyType: typeof parsedBody,
-    bodyKeys: parsedBody && typeof parsedBody === 'object' ? Object.keys(parsedBody as object) : null,
-    bodyMethod: parsedBody && typeof parsedBody === 'object' ? (parsedBody as any).method : null,
-  })
+  console.log('[MCP] Request:', { method: request.method })
 
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
@@ -339,7 +339,7 @@ export async function POST(request: NextRequest) {
     },
   })
 
-  console.log('[MCP] Response:', { status: response.status, contentType: response.headers.get('content-type') })
+  console.log('[MCP] Response:', { status: response.status })
 
   return response
 }

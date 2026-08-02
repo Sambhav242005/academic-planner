@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const subjectInput = z.object({
   name: z.string().trim().min(1).max(60),
@@ -14,7 +15,9 @@ const deleteInput = z.object({ id: z.string().uuid() })
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'subjects', request, isDemo)
+    if (demo) return demo
     const { searchParams } = new URL(request.url)
     const semesterId = searchParams.get('semesterId')
 
@@ -35,7 +38,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'subjects', request, isDemo)
+    if (demo) return demo
     const input = subjectInput.parse(await request.json())
     const { semesterId, ...rest } = input
     const { data, error } = await createAdminClient()
@@ -52,7 +57,9 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'PATCH', 'subjects', request, isDemo)
+    if (demo) return demo
     const input = updateInput.parse(await request.json())
     const { id, ...changes } = input
     const { data, error } = await createAdminClient()
@@ -72,7 +79,9 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'DELETE', 'subjects', request, isDemo)
+    if (demo) return demo
     const { id } = deleteInput.parse(await request.json())
     const { data, error } = await createAdminClient()
       .from('subjects')

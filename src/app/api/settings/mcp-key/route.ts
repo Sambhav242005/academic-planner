@@ -1,13 +1,16 @@
 import { z } from 'zod'
 import { generateApiKey } from '@/lib/mcp/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const deleteInput = z.object({ keyId: z.string().uuid() })
 
 export async function GET() {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'settings/mcp-key', undefined, isDemo)
+    if (demo) return demo
     const { data, error } = await createAdminClient()
       .from('mcp_api_keys')
       .select('id, name, key_prefix, last_used_at, created_at')
@@ -28,7 +31,9 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'settings/mcp-key', undefined, isDemo)
+    if (demo) return demo
     const supabase = createAdminClient()
     const { count, error: countError } = await supabase
       .from('mcp_api_keys')
@@ -53,7 +58,9 @@ export async function POST() {
 
 export async function DELETE(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'DELETE', 'settings/mcp-key', request, isDemo)
+    if (demo) return demo
     const { keyId } = deleteInput.parse(await request.json())
     const { data, error } = await createAdminClient()
       .from('mcp_api_keys')

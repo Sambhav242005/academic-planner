@@ -32,7 +32,7 @@ interface ColorPickerProps {
 export function ColorPicker({ value, onChange }: ColorPickerProps) {
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-8 gap-2" role="radiogroup" aria-label="Pick a preset color">
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2" role="radiogroup" aria-label="Pick a preset color">
         {PRESET_COLORS.map((color) => {
         const selected = value === color.value
         return (
@@ -44,7 +44,7 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
             aria-label={`${color.label} subject color`}
             title={color.label}
             className={cn(
-              'h-8 w-8 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'h-10 w-10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               selected && 'ring-2 ring-offset-2 ring-offset-background'
             )}
             style={{ backgroundColor: color.value, '--tw-ring-color': color.value } as React.CSSProperties}

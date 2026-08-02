@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireOwnedRow, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { ApiError, requireOwnedRow, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const date = z.string().date()
 const status = z.enum(['present', 'absent', 'cancelled', 'holiday']).nullable()
@@ -15,7 +16,9 @@ const updateAttendance = z.object({
 
 export async function GET(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'dashboard', request, isDemo)
+    if (demo) return demo
     const today = date.parse(new URL(request.url).searchParams.get('date'))
     const dateObject = new Date(`${today}T12:00:00`)
     const dayOfWeek = (dateObject.getDay() + 6) % 7
@@ -43,7 +46,15 @@ export async function GET(request: Request) {
       .eq('user_id', userId)
       .eq('date', today)
     const recurringIds = (recurring ?? []).map((entry) => entry.id)
-    if (activeSemester && recurringIds.length > 0) instancesQuery = instancesQuery.in('recurring_class_id', recurringIds)
+    if (activeSemester) {
+      if (recurringIds.length > 0) {
+        instancesQuery = instancesQuery.in('recurring_class_id', recurringIds)
+      } else {
+        // Active semester has no recurring classes — only show manually-created instances
+        // (those with null recurring_class_id) to avoid stale data from other semesters
+        instancesQuery = instancesQuery.is('recurring_class_id', null)
+      }
+    }
     let subjectsQuery = supabase
       .from('subjects')
       .select('id, name, color')
@@ -58,20 +69,22 @@ export async function GET(request: Request) {
     if (activeSemester) {
       subjectCountQuery = subjectCountQuery.eq('semester_id', activeSemester.id)
     }
-    const [{ data: instances, error: instancesError }, { data: subjects, error: subjectsError }, { count: subjectCount, error: subjectCountError }, { count: taskCount, error: taskCountError }, { data: attendance, error: attendanceError }] = await Promise.all([
+    const [{ data: instances, error: instancesError }, { data: subjects, error: subjectsError }, { count: subjectCount, error: subjectCountError }, { count: taskCount, error: taskCountError }, { count: presentCount, error: presentError }, { count: totalCount, error: totalError }] = await Promise.all([
       instancesQuery.order('start_time'),
       subjectsQuery.order('name'),
       subjectCountQuery,
       supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('completed', false),
-      supabase.from('attendance_records').select('status').eq('user_id', userId),
+      supabase.from('attendance_records').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'present'),
+      supabase.from('attendance_records').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['present', 'absent']),
     ])
     if (instancesError) throw instancesError
     if (subjectsError) throw subjectsError
     if (subjectCountError) throw subjectCountError
     if (taskCountError) throw taskCountError
-    if (attendanceError) throw attendanceError
-    const present = (attendance ?? []).filter((record) => record.status === 'present').length
-    const total = (attendance ?? []).filter((record) => record.status === 'present' || record.status === 'absent').length
+    if (presentError) throw presentError
+    if (totalError) throw totalError
+    const present = presentCount ?? 0
+    const total = totalCount ?? 0
     return Response.json({
       activeSemester: activeSemester ?? null,
       recurring: recurring ?? [],
@@ -93,7 +106,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'dashboard', request, isDemo)
+    if (demo) return demo
     const input = updateAttendance.parse(await request.json())
     const supabase = createAdminClient()
     let classInstanceId = input.classInstanceId

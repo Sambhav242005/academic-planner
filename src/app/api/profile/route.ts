@@ -1,12 +1,17 @@
 import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { handleDemoRequest } from '@/lib/demo/intercept'
+import { DEMO_EMAIL } from '@/lib/demo/seed'
 
 export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const demo = await handleDemoRequest(session.user.id, 'GET', 'profile', undefined, session.user.email === DEMO_EMAIL)
+  if (demo) return demo
 
   const supabase = createAdminClient()
   const { data, error } = await supabase
@@ -39,6 +44,9 @@ export async function PUT(request: NextRequest) {
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const demo = await handleDemoRequest(session.user.id, 'PUT', 'profile', request, session.user.email === DEMO_EMAIL)
+  if (demo) return demo
 
   const body = await request.json()
   const { displayName, college, semester, defaultTarget } = body as {

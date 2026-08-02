@@ -1,0 +1,2083 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "AuthLayout",
+      "file_type": "code",
+      "source_file": "src/app/(auth)/layout.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_app_auth_layout_authlayout",
+      "community": 45,
+      "norm_label": "authlayout"
+    },
+    {
+      "label": "AuthLoading",
+      "file_type": "code",
+      "source_file": "src/app/(auth)/loading.tsx",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "src_app_auth_loading_authloading",
+      "community": 46,
+      "norm_label": "authloading"
+    },
+    {
+      "label": "AuthPage",
+      "file_type": "code",
+      "source_file": "src/app/(auth)/login/page.tsx",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "src_app_auth_login_page_authpage",
+      "community": 47,
+      "norm_label": "authpage"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/analytics/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_analytics_page_page",
+      "community": 48,
+      "norm_label": "page"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/attendance/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_attendance_page_page",
+      "community": 49,
+      "norm_label": "page"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/calculator/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_calculator_page_page",
+      "community": 50,
+      "norm_label": "page"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/calendar/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_calendar_page_page",
+      "community": 51,
+      "norm_label": "page"
+    },
+    {
+      "label": "DashboardLayout",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/layout.tsx",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_app_dashboard_layout_dashboardlayout",
+      "community": 52,
+      "norm_label": "dashboardlayout"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/settings/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_settings_page_page",
+      "community": 53,
+      "norm_label": "page"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/subjects/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_subjects_page_page",
+      "community": 54,
+      "norm_label": "page"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/tasks/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_tasks_page_page",
+      "community": 55,
+      "norm_label": "page"
+    },
+    {
+      "label": "Page",
+      "file_type": "code",
+      "source_file": "src/app/(dashboard)/timetable/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_dashboard_timetable_page_page",
+      "community": 56,
+      "norm_label": "page"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/.well-known/jwks/route.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "src_app_well_known_jwks_route_get",
+      "community": 60,
+      "norm_label": "get"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/.well-known/oauth-authorization-server/route.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "src_app_well_known_oauth_authorization_server_route_get",
+      "community": 61,
+      "norm_label": "get"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/.well-known/oauth-protected-resource/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_app_well_known_oauth_protected_resource_route_get",
+      "community": 62,
+      "norm_label": "get"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/analytics/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_app_api_analytics_route_get",
+      "community": 7,
+      "norm_label": "get"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/attendance/route.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "src_app_api_attendance_route_get",
+      "community": 8,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/attendance/route.ts",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "src_app_api_attendance_route_post",
+      "community": 9,
+      "norm_label": "post"
+    },
+    {
+      "label": "{ GET, POST }",
+      "file_type": "code",
+      "source_file": "src/app/api/auth/[...nextauth]/route.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_app_api_auth_nextauth_route_get_post",
+      "community": 10,
+      "norm_label": "{ get, post }"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/auth/otp/send/route.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "src_app_api_auth_otp_send_route_post",
+      "community": 11,
+      "norm_label": "post"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/calendar/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_app_api_calendar_route_get",
+      "community": 12,
+      "norm_label": "get"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/dashboard/route.ts",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "src_app_api_dashboard_route_get",
+      "community": 13,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/dashboard/route.ts",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "src_app_api_dashboard_route_post",
+      "community": 14,
+      "norm_label": "post"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/debug/auth-adapter/route.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "src_app_api_debug_auth_adapter_route_get",
+      "community": 15,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/mcp/route.ts",
+      "source_location": "L253",
+      "_origin": "ast",
+      "id": "src_app_api_mcp_route_post",
+      "community": 17,
+      "norm_label": "post"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/mcp/route.ts",
+      "source_location": "L347",
+      "_origin": "ast",
+      "id": "src_app_api_mcp_route_get",
+      "community": 16,
+      "norm_label": "get"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/oauth/authorize/route.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "src_app_api_oauth_authorize_route_get",
+      "community": 18,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/oauth/register/route.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_app_api_oauth_register_route_post",
+      "community": 19,
+      "norm_label": "post"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/oauth/token/route.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "src_app_api_oauth_token_route_post",
+      "community": 20,
+      "norm_label": "post"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/oauth/verify/route.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "src_app_api_oauth_verify_route_post",
+      "community": 21,
+      "norm_label": "post"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/profile/route.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "src_app_api_profile_route_get",
+      "community": 22,
+      "norm_label": "get"
+    },
+    {
+      "label": "PUT",
+      "file_type": "code",
+      "source_file": "src/app/api/profile/route.ts",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "src_app_api_profile_route_put",
+      "community": 23,
+      "norm_label": "put"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/semesters/route.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "src_app_api_semesters_route_get",
+      "community": 25,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/semesters/route.ts",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "src_app_api_semesters_route_post",
+      "community": 27,
+      "norm_label": "post"
+    },
+    {
+      "label": "PATCH",
+      "file_type": "code",
+      "source_file": "src/app/api/semesters/route.ts",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "src_app_api_semesters_route_patch",
+      "community": 26,
+      "norm_label": "patch"
+    },
+    {
+      "label": "DELETE",
+      "file_type": "code",
+      "source_file": "src/app/api/semesters/route.ts",
+      "source_location": "L165",
+      "_origin": "ast",
+      "id": "src_app_api_semesters_route_delete",
+      "community": 24,
+      "norm_label": "delete"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/settings/data/route.ts",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "src_app_api_settings_data_route_get",
+      "community": 28,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/settings/data/route.ts",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "src_app_api_settings_data_route_post",
+      "community": 29,
+      "norm_label": "post"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/settings/mcp-key/route.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "src_app_api_settings_mcp_key_route_get",
+      "community": 31,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/settings/mcp-key/route.ts",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "src_app_api_settings_mcp_key_route_post",
+      "community": 32,
+      "norm_label": "post"
+    },
+    {
+      "label": "DELETE",
+      "file_type": "code",
+      "source_file": "src/app/api/settings/mcp-key/route.ts",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "src_app_api_settings_mcp_key_route_delete",
+      "community": 30,
+      "norm_label": "delete"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/subjects/route.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "src_app_api_subjects_route_get",
+      "community": 34,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/subjects/route.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "src_app_api_subjects_route_post",
+      "community": 36,
+      "norm_label": "post"
+    },
+    {
+      "label": "PATCH",
+      "file_type": "code",
+      "source_file": "src/app/api/subjects/route.ts",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "src_app_api_subjects_route_patch",
+      "community": 35,
+      "norm_label": "patch"
+    },
+    {
+      "label": "DELETE",
+      "file_type": "code",
+      "source_file": "src/app/api/subjects/route.ts",
+      "source_location": "L73",
+      "_origin": "ast",
+      "id": "src_app_api_subjects_route_delete",
+      "community": 33,
+      "norm_label": "delete"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/tasks/route.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "src_app_api_tasks_route_get",
+      "community": 38,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/tasks/route.ts",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "src_app_api_tasks_route_post",
+      "community": 40,
+      "norm_label": "post"
+    },
+    {
+      "label": "PATCH",
+      "file_type": "code",
+      "source_file": "src/app/api/tasks/route.ts",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "src_app_api_tasks_route_patch",
+      "community": 39,
+      "norm_label": "patch"
+    },
+    {
+      "label": "DELETE",
+      "file_type": "code",
+      "source_file": "src/app/api/tasks/route.ts",
+      "source_location": "L98",
+      "_origin": "ast",
+      "id": "src_app_api_tasks_route_delete",
+      "community": 37,
+      "norm_label": "delete"
+    },
+    {
+      "label": "GET",
+      "file_type": "code",
+      "source_file": "src/app/api/timetable/route.ts",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "src_app_api_timetable_route_get",
+      "community": 42,
+      "norm_label": "get"
+    },
+    {
+      "label": "POST",
+      "file_type": "code",
+      "source_file": "src/app/api/timetable/route.ts",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "src_app_api_timetable_route_post",
+      "community": 44,
+      "norm_label": "post"
+    },
+    {
+      "label": "PATCH",
+      "file_type": "code",
+      "source_file": "src/app/api/timetable/route.ts",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "src_app_api_timetable_route_patch",
+      "community": 43,
+      "norm_label": "patch"
+    },
+    {
+      "label": "DELETE",
+      "file_type": "code",
+      "source_file": "src/app/api/timetable/route.ts",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "src_app_api_timetable_route_delete",
+      "community": 41,
+      "norm_label": "delete"
+    },
+    {
+      "label": "RootLayout",
+      "file_type": "code",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "src_app_layout_rootlayout",
+      "community": 57,
+      "norm_label": "rootlayout"
+    },
+    {
+      "label": "HomePage",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_app_page_homepage",
+      "community": 58,
+      "norm_label": "homepage"
+    },
+    {
+      "label": "Providers",
+      "file_type": "code",
+      "source_file": "src/app/providers.tsx",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "src_app_providers_providers",
+      "community": 59,
+      "norm_label": "providers"
+    },
+    {
+      "label": "OtpInput",
+      "file_type": "code",
+      "source_file": "src/components/auth/otp-input.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "src_components_auth_otp_input_otpinput",
+      "community": 63,
+      "norm_label": "otpinput"
+    },
+    {
+      "label": "ThemeToggle",
+      "file_type": "code",
+      "source_file": "src/components/layout/theme-toggle.tsx",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_components_layout_theme_toggle_themetoggle",
+      "community": 64,
+      "norm_label": "themetoggle"
+    },
+    {
+      "label": "LoadingBar",
+      "file_type": "code",
+      "source_file": "src/components/shared/loading-bar.tsx",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_components_shared_loading_bar_loadingbar",
+      "community": 65,
+      "norm_label": "loadingbar"
+    },
+    {
+      "label": "LoadingSpinner",
+      "file_type": "code",
+      "source_file": "src/components/shared/loading-spinner.tsx",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_components_shared_loading_spinner_loadingspinner",
+      "community": 66,
+      "norm_label": "loadingspinner"
+    },
+    {
+      "label": "useIsMobile",
+      "file_type": "code",
+      "source_file": "src/hooks/use-mobile.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "src_hooks_use_mobile_useismobile",
+      "community": 67,
+      "norm_label": "useismobile"
+    },
+    {
+      "label": "requireUserId",
+      "file_type": "code",
+      "source_file": "src/lib/api/route.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "src_lib_api_route_requireuserid",
+      "community": 71,
+      "norm_label": "requireuserid"
+    },
+    {
+      "label": "ApiError",
+      "file_type": "code",
+      "source_file": "src/lib/api/route.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "src_lib_api_route_apierror",
+      "community": 68,
+      "norm_label": "apierror"
+    },
+    {
+      "label": "toErrorResponse",
+      "file_type": "code",
+      "source_file": "src/lib/api/route.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "src_lib_api_route_toerrorresponse",
+      "community": 72,
+      "norm_label": "toerrorresponse"
+    },
+    {
+      "label": "requireOwnedRow",
+      "file_type": "code",
+      "source_file": "src/lib/api/route.ts",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "src_lib_api_route_requireownedrow",
+      "community": 70,
+      "norm_label": "requireownedrow"
+    },
+    {
+      "label": "requireOwnedOptionalReference",
+      "file_type": "code",
+      "source_file": "src/lib/api/route.ts",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "src_lib_api_route_requireownedoptionalreference",
+      "community": 69,
+      "norm_label": "requireownedoptionalreference"
+    },
+    {
+      "label": "otpEmailHtml",
+      "file_type": "code",
+      "source_file": "src/lib/auth/email-template.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_lib_auth_email_template_otpemailhtml",
+      "community": 73,
+      "norm_label": "otpemailhtml"
+    },
+    {
+      "label": "otpEmailText",
+      "file_type": "code",
+      "source_file": "src/lib/auth/email-template.ts",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "src_lib_auth_email_template_otpemailtext",
+      "community": 74,
+      "norm_label": "otpemailtext"
+    },
+    {
+      "label": "generateOtp",
+      "file_type": "code",
+      "source_file": "src/lib/auth/otp.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "src_lib_auth_otp_generateotp",
+      "community": 75,
+      "norm_label": "generateotp"
+    },
+    {
+      "label": "hashOtp",
+      "file_type": "code",
+      "source_file": "src/lib/auth/otp.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "src_lib_auth_otp_hashotp",
+      "community": 76,
+      "norm_label": "hashotp"
+    },
+    {
+      "label": "verifyOtp",
+      "file_type": "code",
+      "source_file": "src/lib/auth/otp.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_lib_auth_otp_verifyotp",
+      "community": 78,
+      "norm_label": "verifyotp"
+    },
+    {
+      "label": "sendOtpEmail",
+      "file_type": "code",
+      "source_file": "src/lib/auth/otp.ts",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "src_lib_auth_otp_sendotpemail",
+      "community": 77,
+      "norm_label": "sendotpemail"
+    },
+    {
+      "label": "generateApiKey",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/auth.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_lib_mcp_auth_generateapikey",
+      "community": 79,
+      "norm_label": "generateapikey"
+    },
+    {
+      "label": "validateApiKey",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/auth.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_lib_mcp_auth_validateapikey",
+      "community": 80,
+      "norm_label": "validateapikey"
+    },
+    {
+      "label": "McpContext",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_mcpcontext",
+      "community": 93,
+      "norm_label": "mcpcontext"
+    },
+    {
+      "label": "listSubjects",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_listsubjects",
+      "community": 90,
+      "norm_label": "listsubjects"
+    },
+    {
+      "label": "createSubject",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_createsubject",
+      "community": 83,
+      "norm_label": "createsubject"
+    },
+    {
+      "label": "listSemesters",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L72",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_listsemesters",
+      "community": 89,
+      "norm_label": "listsemesters"
+    },
+    {
+      "label": "createSemester",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_createsemester",
+      "community": 82,
+      "norm_label": "createsemester"
+    },
+    {
+      "label": "listRecurringClasses",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L122",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_listrecurringclasses",
+      "community": 88,
+      "norm_label": "listrecurringclasses"
+    },
+    {
+      "label": "createRecurringClass",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L142",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_createrecurringclass",
+      "community": 81,
+      "norm_label": "createrecurringclass"
+    },
+    {
+      "label": "createTask",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L220",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_createtask",
+      "community": 84,
+      "norm_label": "createtask"
+    },
+    {
+      "label": "listTasks",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L258",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_listtasks",
+      "community": 92,
+      "norm_label": "listtasks"
+    },
+    {
+      "label": "updateTask",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L276",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_updatetask",
+      "community": 94,
+      "norm_label": "updatetask"
+    },
+    {
+      "label": "deleteTask",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L306",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_deletetask",
+      "community": 85,
+      "norm_label": "deletetask"
+    },
+    {
+      "label": "getTodayClasses",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L317",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_gettodayclasses",
+      "community": 87,
+      "norm_label": "gettodayclasses"
+    },
+    {
+      "label": "getAttendanceStats",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L338",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_getattendancestats",
+      "community": 86,
+      "norm_label": "getattendancestats"
+    },
+    {
+      "label": "listSubjectsWithAttendance",
+      "file_type": "code",
+      "source_file": "src/lib/mcp/tools.ts",
+      "source_location": "L380",
+      "_origin": "ast",
+      "id": "src_lib_mcp_tools_listsubjectswithattendance",
+      "community": 91,
+      "norm_label": "listsubjectswithattendance"
+    },
+    {
+      "label": "getSigningKey",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/keys.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "src_lib_oauth_keys_getsigningkey",
+      "community": 98,
+      "norm_label": "getsigningkey"
+    },
+    {
+      "label": "getVerificationKey",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/keys.ts",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "src_lib_oauth_keys_getverificationkey",
+      "community": 99,
+      "norm_label": "getverificationkey"
+    },
+    {
+      "label": "getJwks",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/keys.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "src_lib_oauth_keys_getjwks",
+      "community": 95,
+      "norm_label": "getjwks"
+    },
+    {
+      "label": "getKid",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/keys.ts",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "src_lib_oauth_keys_getkid",
+      "community": 96,
+      "norm_label": "getkid"
+    },
+    {
+      "label": "getPublicKeyThumbprint",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/keys.ts",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "src_lib_oauth_keys_getpublickeythumbprint",
+      "community": 97,
+      "norm_label": "getpublickeythumbprint"
+    },
+    {
+      "label": "getClientId",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/store.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "src_lib_oauth_store_getclientid",
+      "community": 103,
+      "norm_label": "getclientid"
+    },
+    {
+      "label": "isValidRedirectUri",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/store.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "src_lib_oauth_store_isvalidredirecturi",
+      "community": 104,
+      "norm_label": "isvalidredirecturi"
+    },
+    {
+      "label": "createAuthCode",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/store.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "src_lib_oauth_store_createauthcode",
+      "community": 102,
+      "norm_label": "createauthcode"
+    },
+    {
+      "label": "consumeAuthCode",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/store.ts",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "src_lib_oauth_store_consumeauthcode",
+      "community": 101,
+      "norm_label": "consumeauthcode"
+    },
+    {
+      "label": "cleanupExpiredCodes",
+      "file_type": "code",
+      "source_file": "src/lib/oauth/store.ts",
+      "source_location": "L79",
+      "_origin": "ast",
+      "id": "src_lib_oauth_store_cleanupexpiredcodes",
+      "community": 100,
+      "norm_label": "cleanupexpiredcodes"
+    },
+    {
+      "label": "createAdminClient",
+      "file_type": "code",
+      "source_file": "src/lib/supabase/admin.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_lib_supabase_admin_createadminclient",
+      "community": 105,
+      "norm_label": "createadminclient"
+    },
+    {
+      "label": "createClient",
+      "file_type": "code",
+      "source_file": "src/lib/supabase/server.ts",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "src_lib_supabase_server_createclient",
+      "community": 106,
+      "norm_label": "createclient"
+    },
+    {
+      "label": "cn",
+      "file_type": "code",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "src_lib_utils_cn",
+      "community": 109,
+      "norm_label": "cn"
+    },
+    {
+      "label": "calculateStats",
+      "file_type": "code",
+      "source_file": "src/lib/utils/attendance-stats.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "src_lib_utils_attendance_stats_calculatestats",
+      "community": 108,
+      "norm_label": "calculatestats"
+    },
+    {
+      "label": "calculateSafeToMiss",
+      "file_type": "code",
+      "source_file": "src/lib/utils/attendance-stats.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "src_lib_utils_attendance_stats_calculatesafetomiss",
+      "community": 107,
+      "norm_label": "calculatesafetomiss"
+    },
+    {
+      "label": "isoWeekday",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_isoweekday",
+      "community": 118,
+      "norm_label": "isoweekday"
+    },
+    {
+      "label": "getLocalDateKey",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_getlocaldatekey",
+      "community": 114,
+      "norm_label": "getlocaldatekey"
+    },
+    {
+      "label": "startOfWeek",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_startofweek",
+      "community": 121,
+      "norm_label": "startofweek"
+    },
+    {
+      "label": "endOfWeek",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_endofweek",
+      "community": 111,
+      "norm_label": "endofweek"
+    },
+    {
+      "label": "startOfMonth",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_startofmonth",
+      "community": 120,
+      "norm_label": "startofmonth"
+    },
+    {
+      "label": "endOfMonth",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_endofmonth",
+      "community": 110,
+      "norm_label": "endofmonth"
+    },
+    {
+      "label": "formatDate",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_formatdate",
+      "community": 112,
+      "norm_label": "formatdate"
+    },
+    {
+      "label": "formatTime",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_formattime",
+      "community": 113,
+      "norm_label": "formattime"
+    },
+    {
+      "label": "isToday",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_istoday",
+      "community": 119,
+      "norm_label": "istoday"
+    },
+    {
+      "label": "getMonthDays",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_getmonthdays",
+      "community": 115,
+      "norm_label": "getmonthdays"
+    },
+    {
+      "label": "getWeekDays",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_getweekdays",
+      "community": 117,
+      "norm_label": "getweekdays"
+    },
+    {
+      "label": "getSemesterRange",
+      "file_type": "code",
+      "source_file": "src/lib/utils/dates.ts",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "src_lib_utils_dates_getsemesterrange",
+      "community": 116,
+      "norm_label": "getsemesterrange"
+    },
+    {
+      "label": "IndianHoliday",
+      "file_type": "code",
+      "source_file": "src/lib/utils/indian-holidays.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_lib_utils_indian_holidays_indianholiday",
+      "community": 123,
+      "norm_label": "indianholiday"
+    },
+    {
+      "label": "getFixedHolidaysForYear",
+      "file_type": "code",
+      "source_file": "src/lib/utils/indian-holidays.ts",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "src_lib_utils_indian_holidays_getfixedholidaysforyear",
+      "community": 122,
+      "norm_label": "getfixedholidaysforyear"
+    },
+    {
+      "label": "isIndianHoliday",
+      "file_type": "code",
+      "source_file": "src/lib/utils/indian-holidays.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "src_lib_utils_indian_holidays_isindianholiday",
+      "community": 124,
+      "norm_label": "isindianholiday"
+    },
+    {
+      "label": "timeToMinutes",
+      "file_type": "code",
+      "source_file": "src/lib/utils/time.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_lib_utils_time_timetominutes",
+      "community": 127,
+      "norm_label": "timetominutes"
+    },
+    {
+      "label": "hasTimeOverlap",
+      "file_type": "code",
+      "source_file": "src/lib/utils/time.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_lib_utils_time_hastimeoverlap",
+      "community": 126,
+      "norm_label": "hastimeoverlap"
+    },
+    {
+      "label": "checkCollision",
+      "file_type": "code",
+      "source_file": "src/lib/utils/time.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "src_lib_utils_time_checkcollision",
+      "community": 125,
+      "norm_label": "checkcollision"
+    },
+    {
+      "label": "Profile",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_types_index_profile",
+      "community": 133,
+      "norm_label": "profile"
+    },
+    {
+      "label": "Subject",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "src_types_index_subject",
+      "community": 136,
+      "norm_label": "subject"
+    },
+    {
+      "label": "RecurringClass",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "src_types_index_recurringclass",
+      "community": 134,
+      "norm_label": "recurringclass"
+    },
+    {
+      "label": "ClassInstance",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "src_types_index_classinstance",
+      "community": 130,
+      "norm_label": "classinstance"
+    },
+    {
+      "label": "AttendanceRecord",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "src_types_index_attendancerecord",
+      "community": 128,
+      "norm_label": "attendancerecord"
+    },
+    {
+      "label": "Task",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "src_types_index_task",
+      "community": 137,
+      "norm_label": "task"
+    },
+    {
+      "label": "Holiday",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "src_types_index_holiday",
+      "community": 6,
+      "norm_label": "holiday"
+    },
+    {
+      "label": "Semester",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "src_types_index_semester",
+      "community": 135,
+      "norm_label": "semester"
+    },
+    {
+      "label": "McpApiKey",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "src_types_index_mcpapikey",
+      "community": 132,
+      "norm_label": "mcpapikey"
+    },
+    {
+      "label": "ClassType",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L92",
+      "_origin": "ast",
+      "id": "src_types_index_classtype",
+      "community": 131,
+      "norm_label": "classtype"
+    },
+    {
+      "label": "AttendanceStatus",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "src_types_index_attendancestatus",
+      "community": 129,
+      "norm_label": "attendancestatus"
+    },
+    {
+      "label": "TaskPriority",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "src_types_index_taskpriority",
+      "community": 138,
+      "norm_label": "taskpriority"
+    },
+    {
+      "label": "TaskSource",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "src_types_index_tasksource",
+      "community": 139,
+      "norm_label": "tasksource"
+    },
+    {
+      "label": "AttendanceStats",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L97",
+      "_origin": "ast",
+      "id": "src_types_index_attendancestats",
+      "community": 5,
+      "norm_label": "attendancestats"
+    },
+    {
+      "label": "SubjectAttendanceStats",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "src_types_index_subjectattendancestats",
+      "community": 5,
+      "norm_label": "subjectattendancestats"
+    },
+    {
+      "label": "HolidayWithSource",
+      "file_type": "code",
+      "source_file": "src/types/index.ts",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "src_types_index_holidaywithsource",
+      "community": 6,
+      "norm_label": "holidaywithsource"
+    },
+    {
+      "type": "project",
+      "label": "Academic Planner",
+      "description": "Personal academic planner for Indian MBBS students",
+      "source_file": "README.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "academic-planner",
+      "community": 0,
+      "norm_label": "academic planner"
+    },
+    {
+      "type": "technology",
+      "label": "Next.js 14",
+      "description": "React framework with App Router",
+      "source_file": "AGENTS.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "nextjs",
+      "community": 0,
+      "norm_label": "next.js 14"
+    },
+    {
+      "type": "technology",
+      "label": "Supabase",
+      "description": "PostgreSQL database with Auth",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "supabase",
+      "community": 0,
+      "norm_label": "supabase"
+    },
+    {
+      "type": "technology",
+      "label": "NextAuth.js v5",
+      "description": "Authentication with OTP provider",
+      "source_file": "AI.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "nextauth",
+      "community": 0,
+      "norm_label": "nextauth.js v5"
+    },
+    {
+      "type": "technology",
+      "label": "TanStack Query",
+      "description": "Server state management",
+      "source_file": "STATE_MANAGEMENT.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "tanstack-query",
+      "community": 0,
+      "norm_label": "tanstack query"
+    },
+    {
+      "type": "technology",
+      "label": "Zustand",
+      "description": "UI state management",
+      "source_file": "STATE_MANAGEMENT.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "zustand",
+      "community": 0,
+      "norm_label": "zustand"
+    },
+    {
+      "type": "technology",
+      "label": "Tailwind CSS v4",
+      "description": "Utility-first CSS framework",
+      "source_file": "AGENTS.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "tailwind",
+      "community": 0,
+      "norm_label": "tailwind css v4"
+    },
+    {
+      "type": "technology",
+      "label": "shadcn/ui",
+      "description": "UI component library",
+      "source_file": "COMPONENTS.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "shadcn-ui",
+      "community": 0,
+      "norm_label": "shadcn/ui"
+    },
+    {
+      "type": "feature",
+      "label": "MCP Server",
+      "description": "AI integration via Model Context Protocol",
+      "source_file": "AI.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "mcp-server",
+      "community": 0,
+      "norm_label": "mcp server"
+    },
+    {
+      "type": "technology",
+      "label": "motion.dev",
+      "description": "Animation library",
+      "source_file": "AGENTS.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "motion-dev",
+      "community": 0,
+      "norm_label": "motion.dev"
+    },
+    {
+      "type": "technology",
+      "label": "Resend",
+      "description": "Email delivery for OTP",
+      "source_file": "AI.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "resend",
+      "community": 0,
+      "norm_label": "resend"
+    },
+    {
+      "type": "feature",
+      "label": "Subjects CRUD",
+      "description": "Create/read/update/delete academic subjects",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "subjects-feature",
+      "community": 2,
+      "norm_label": "subjects crud"
+    },
+    {
+      "type": "feature",
+      "label": "Timetable",
+      "description": "Recurring class schedule management",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "timetable-feature",
+      "community": 2,
+      "norm_label": "timetable"
+    },
+    {
+      "type": "feature",
+      "label": "Attendance Tracking",
+      "description": "Mark and track class attendance",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "attendance-feature",
+      "community": 1,
+      "norm_label": "attendance tracking"
+    },
+    {
+      "type": "feature",
+      "label": "Tasks",
+      "description": "Task management with priorities",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "tasks-feature",
+      "community": 4,
+      "norm_label": "tasks"
+    },
+    {
+      "type": "feature",
+      "label": "Calendar",
+      "description": "Month/Week/Day views with attendance",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "calendar-feature",
+      "community": 1,
+      "norm_label": "calendar"
+    },
+    {
+      "type": "feature",
+      "label": "Analytics",
+      "description": "Attendance statistics and breakdowns",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "analytics-feature",
+      "community": 1,
+      "norm_label": "analytics"
+    },
+    {
+      "type": "feature",
+      "label": "Dashboard",
+      "description": "Today's classes and overview",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "dashboard-feature",
+      "community": 2,
+      "norm_label": "dashboard"
+    },
+    {
+      "type": "feature",
+      "label": "Settings",
+      "description": "Profile, semesters, export/import",
+      "source_file": "FEATURES.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "settings-feature",
+      "community": 3,
+      "norm_label": "settings"
+    },
+    {
+      "type": "database",
+      "label": "profiles",
+      "description": "User profile with display_name, college, target",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "profiles-table",
+      "community": 3,
+      "norm_label": "profiles"
+    },
+    {
+      "type": "database",
+      "label": "subjects",
+      "description": "Academic subjects with color",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "subjects-table",
+      "community": 2,
+      "norm_label": "subjects"
+    },
+    {
+      "type": "database",
+      "label": "semesters",
+      "description": "Semester definitions with active flag",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "semesters-table",
+      "community": 2,
+      "norm_label": "semesters"
+    },
+    {
+      "type": "database",
+      "label": "recurring_classes",
+      "description": "Weekly class schedule entries",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "recurring-classes-table",
+      "community": 2,
+      "norm_label": "recurring_classes"
+    },
+    {
+      "type": "database",
+      "label": "class_instances",
+      "description": "Generated class instances from schedule",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "class-instances-table",
+      "community": 1,
+      "norm_label": "class_instances"
+    },
+    {
+      "type": "database",
+      "label": "attendance_records",
+      "description": "Present/Absent/Cancelled/Holiday status",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "attendance-records-table",
+      "community": 1,
+      "norm_label": "attendance_records"
+    },
+    {
+      "type": "database",
+      "label": "tasks",
+      "description": "User and AI-created tasks",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "tasks-table",
+      "community": 4,
+      "norm_label": "tasks"
+    },
+    {
+      "type": "database",
+      "label": "holidays",
+      "description": "Holiday dates",
+      "source_file": "DATABASE.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "holidays-table",
+      "community": 1,
+      "norm_label": "holidays"
+    },
+    {
+      "type": "api",
+      "label": "/api/subjects",
+      "description": "Subjects CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-subjects",
+      "community": 2,
+      "norm_label": "/api/subjects"
+    },
+    {
+      "type": "api",
+      "label": "/api/timetable",
+      "description": "Timetable CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-timetable",
+      "community": 2,
+      "norm_label": "/api/timetable"
+    },
+    {
+      "type": "api",
+      "label": "/api/attendance",
+      "description": "Attendance mark/view endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-attendance",
+      "community": 1,
+      "norm_label": "/api/attendance"
+    },
+    {
+      "type": "api",
+      "label": "/api/tasks",
+      "description": "Tasks CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-tasks",
+      "community": 4,
+      "norm_label": "/api/tasks"
+    },
+    {
+      "type": "api",
+      "label": "/api/calendar",
+      "description": "Calendar data endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-calendar",
+      "community": 1,
+      "norm_label": "/api/calendar"
+    },
+    {
+      "type": "api",
+      "label": "/api/dashboard",
+      "description": "Dashboard data endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-dashboard",
+      "community": 2,
+      "norm_label": "/api/dashboard"
+    },
+    {
+      "type": "api",
+      "label": "/api/analytics",
+      "description": "Analytics data endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-analytics",
+      "community": 1,
+      "norm_label": "/api/analytics"
+    },
+    {
+      "type": "api",
+      "label": "/api/profile",
+      "description": "Profile CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-profile",
+      "community": 3,
+      "norm_label": "/api/profile"
+    },
+    {
+      "type": "api",
+      "label": "/api/semesters",
+      "description": "Semesters CRUD endpoint",
+      "source_file": "API.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-semesters",
+      "community": 3,
+      "norm_label": "/api/semesters"
+    },
+    {
+      "type": "api",
+      "label": "/api/mcp",
+      "description": "MCP server endpoint for AI",
+      "source_file": "AI.md",
+      "confidence": 0.95,
+      "file_type": "concept",
+      "id": "api-mcp",
+      "community": 0,
+      "norm_label": "/api/mcp"
+    }
+  ],
+  "links": [
+    {
+      "relation": "inherits",
+      "context": "type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/types/index.ts",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "src_types_index_holidaywithsource",
+      "target": "src_types_index_holiday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "context": "type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/types/index.ts",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "src_types_index_subjectattendancestats",
+      "target": "src_types_index_attendancestats",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "mcp-server",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "motion-dev",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "nextauth",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "nextjs",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "resend",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "shadcn-ui",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "supabase",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "tailwind",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "tanstack-query",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "source_file": "README.md",
+      "source": "academic-planner",
+      "target": "zustand",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "exposes",
+      "source_file": "AI.md",
+      "source": "mcp-server",
+      "target": "api-mcp",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "subjects-feature",
+      "target": "api-subjects",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "subjects-feature",
+      "target": "subjects-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "timetable-feature",
+      "target": "api-timetable",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "timetable-feature",
+      "target": "recurring-classes-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "attendance-feature",
+      "target": "api-attendance",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "attendance-feature",
+      "target": "attendance-records-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "attendance-feature",
+      "target": "class-instances-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "tasks-feature",
+      "target": "api-tasks",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "tasks-feature",
+      "target": "tasks-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "calendar-feature",
+      "target": "api-calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "calendar-feature",
+      "target": "class-instances-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "calendar-feature",
+      "target": "holidays-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "analytics-feature",
+      "target": "api-analytics",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "analytics-feature",
+      "target": "attendance-records-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "dashboard-feature",
+      "target": "api-dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "dashboard-feature",
+      "target": "class-instances-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "dashboard-feature",
+      "target": "recurring-classes-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "settings-feature",
+      "target": "api-profile",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "calls",
+      "source_file": "FEATURES.md",
+      "source": "settings-feature",
+      "target": "api-semesters",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "settings-feature",
+      "target": "profiles-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "reads_from",
+      "source_file": "FEATURES.md",
+      "source": "settings-feature",
+      "target": "semesters-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "class-instances-table",
+      "target": "subjects-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "recurring-classes-table",
+      "target": "subjects-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "subjects-table",
+      "target": "semesters-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "tasks-table",
+      "target": "subjects-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "recurring-classes-table",
+      "target": "semesters-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "class-instances-table",
+      "target": "recurring-classes-table",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "source_file": "DATABASE.md",
+      "source": "attendance-records-table",
+      "target": "class-instances-table",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "d355184dee49de9bc1e8eac106c6bed6eae0003e"
+}

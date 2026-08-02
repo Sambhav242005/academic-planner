@@ -1,12 +1,17 @@
 import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { handleDemoRequest } from '@/lib/demo/intercept'
+import { DEMO_EMAIL } from '@/lib/demo/seed'
 
 export async function GET(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const demo = await handleDemoRequest(session.user.id, 'GET', 'semesters', request, session.user.email === DEMO_EMAIL)
+  if (demo) return demo
 
   const { searchParams } = new URL(request.url)
   const activeOnly = searchParams.get('active') === 'true'
@@ -34,6 +39,8 @@ export async function GET(request: NextRequest) {
       id: data.id,
       label: data.label,
       isActive: data.is_active,
+      startDate: data.start_date ?? null,
+      endDate: data.end_date ?? null,
       createdAt: data.created_at,
     })
   }
@@ -52,6 +59,8 @@ export async function GET(request: NextRequest) {
     id: s.id,
     label: s.label,
     isActive: s.is_active,
+    startDate: s.start_date ?? null,
+    endDate: s.end_date ?? null,
     createdAt: s.created_at,
   }))
 
@@ -64,7 +73,10 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { label } = await request.json() as { label?: string }
+  const demo = await handleDemoRequest(session.user.id, 'POST', 'semesters', request, session.user.email === DEMO_EMAIL)
+  if (demo) return demo
+
+  const { label, startDate, endDate } = await request.json() as { label?: string; startDate?: string | null; endDate?: string | null }
   if (!label?.trim()) {
     return Response.json({ error: 'Label is required' }, { status: 400 })
   }
@@ -76,6 +88,8 @@ export async function POST(request: NextRequest) {
       user_id: session.user.id,
       label: label.trim(),
       is_active: false,
+      start_date: startDate || null,
+      end_date: endDate || null,
     })
     .select()
     .single()
@@ -88,6 +102,8 @@ export async function POST(request: NextRequest) {
     id: data.id,
     label: data.label,
     isActive: data.is_active,
+    startDate: data.start_date ?? null,
+    endDate: data.end_date ?? null,
     createdAt: data.created_at,
   })
 }
@@ -98,10 +114,15 @@ export async function PATCH(request: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { id, isActive, label } = await request.json() as {
+  const demo = await handleDemoRequest(session.user.id, 'PATCH', 'semesters', request, session.user.email === DEMO_EMAIL)
+  if (demo) return demo
+
+  const { id, isActive, label, startDate, endDate } = await request.json() as {
     id?: string
     isActive?: boolean
     label?: string
+    startDate?: string | null
+    endDate?: string | null
   }
 
   if (!id) {
@@ -143,6 +164,8 @@ export async function PATCH(request: NextRequest) {
     const update: Record<string, unknown> = {}
     if (isActive !== undefined) update.is_active = isActive
     if (label !== undefined) update.label = label.trim().slice(0, 80)
+    if (startDate !== undefined) update.start_date = startDate || null
+    if (endDate !== undefined) update.end_date = endDate || null
 
     if (Object.keys(update).length === 0) {
       return Response.json({ error: 'Nothing to update' }, { status: 400 })
@@ -167,6 +190,9 @@ export async function DELETE(request: NextRequest) {
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const demo = await handleDemoRequest(session.user.id, 'DELETE', 'semesters', request, session.user.email === DEMO_EMAIL)
+  if (demo) return demo
 
   const { id } = await request.json() as { id?: string }
   if (!id) {

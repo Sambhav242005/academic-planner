@@ -57,6 +57,7 @@ export async function getKid(): Promise<string> {
 export async function getPublicKeyThumbprint(): Promise<string> {
   const privateKey = await getSigningKey()
   const jwk = await exportJWK(privateKey)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { d, dp, dq, p, q, qi: _qi, ...publicJwk } = jwk
   const sortedKeys = Object.keys(publicJwk).sort() as Array<keyof typeof publicJwk>
   const data = JSON.stringify(

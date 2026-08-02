@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Academic Planner",
   description: "What do I need to do right now?",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +32,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
       style={{ colorScheme: 'dark' }}
+      data-scroll-behavior="smooth"
     >
       <head>
         <meta name="theme-color" content="#0a0a0a" />

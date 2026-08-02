@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ApiError, requireOwnedRow, requireUserId, toErrorResponse } from '@/lib/api/route'
+import { requireOwnedRow, requireUserIdAndDemo, toErrorResponse } from '@/lib/api/route'
+import { handleDemoRequest } from '@/lib/demo/intercept'
 
 const date = z.string().date()
 const statusInput = z.object({
@@ -10,7 +11,9 @@ const statusInput = z.object({
 
 export async function GET(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'GET', 'attendance', request, isDemo)
+    if (demo) return demo
     const selectedDate = date.parse(new URL(request.url).searchParams.get('date'))
     const supabase = createAdminClient()
     const { data: activeSemester, error: semesterError } = await supabase
@@ -47,7 +50,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const userId = await requireUserId()
+    const { userId, isDemo } = await requireUserIdAndDemo()
+    const demo = await handleDemoRequest(userId, 'POST', 'attendance', request, isDemo)
+    if (demo) return demo
     const input = statusInput.parse(await request.json())
     await requireOwnedRow('class_instances', input.classInstanceId, userId)
     const { error } = await createAdminClient()
